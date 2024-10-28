@@ -2,6 +2,7 @@ package ru.kartollika.yandexcup.canvas
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -144,7 +143,38 @@ fun CanvasScreen(
   Canvas(
     modifier = modifier,
   ) {
+    when (motionEvent) {
+      MotionEvent.Down -> {
+        path.moveTo(currentPosition.x, currentPosition.y)
+        previousPosition = currentPosition
+      }
 
+      MotionEvent.Move -> {
+        path.quadraticBezierTo(
+          previousPosition.x,
+          previousPosition.y,
+          (previousPosition.x + currentPosition.x) / 2,
+          (previousPosition.y + currentPosition.y) / 2
+
+        )
+        previousPosition = currentPosition
+      }
+
+      MotionEvent.Up -> {
+        path.lineTo(currentPosition.x, currentPosition.y)
+        currentPosition = Offset.Unspecified
+        previousPosition = currentPosition
+        motionEvent = MotionEvent.Idle
+      }
+
+      else -> Unit
+    }
+
+    drawPath(
+      color = Color.Red,
+      path = path,
+      style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+    )
   }
 }
 
