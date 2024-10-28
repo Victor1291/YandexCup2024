@@ -11,18 +11,9 @@ import ru.kartollika.yandexcup.mvi2.MVIState
 @Immutable
 data class CanvasState(
   val frames: Frames = persistentListOf(Frame()),
-  val currentMode: DrawMode = DrawMode.Pencil,
-  val color: Color = Color.Blue,
-  val colorPickerVisible: Boolean = false,
   val currentFrameIndex: Int = 0,
-  val isPreviewAnimation: Boolean = false,
+  val editorConfiguration: EditorConfiguration = EditorConfiguration(),
 ) : MVIState {
-
-  val canUndo: Boolean
-    get() = currentFrame.paths.isNotEmpty()
-
-  val canRedo: Boolean
-    get() = currentFrame.undoPaths.isNotEmpty()
 
   val currentFrame: Frame
     get() = frames[currentFrameIndex]
@@ -45,7 +36,10 @@ data class PathProperties(
 
 @Immutable
 sealed interface DrawMode {
+  @Immutable
   data object Pencil : DrawMode
+
+  @Immutable
   data object Erase : DrawMode
 }
 
@@ -57,4 +51,12 @@ data class Frame(
   val currentPath: PathWithProperties? = null,
   val lastOffset: Offset = Offset.Unspecified,
   val undoPaths: ImmutableList<PathWithProperties> = persistentListOf(),
+)
+
+@Immutable
+data class EditorConfiguration(
+  val isPreviewAnimation: Boolean = false,
+  val color: Color = Color.Blue,
+  val colorPickerVisible: Boolean = false,
+  val currentMode: DrawMode = DrawMode.Pencil,
 )

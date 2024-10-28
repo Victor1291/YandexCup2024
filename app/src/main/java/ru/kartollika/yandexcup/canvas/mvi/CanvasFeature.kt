@@ -50,6 +50,7 @@ class CanvasFeature @Inject constructor(
           consumeAction(UpdateOffset(newOffset))
         }
       }
+
       is StartAnimation -> startFramesAnimation()
       is DrawFinish -> Unit
       is DrawStart -> Unit
@@ -70,7 +71,7 @@ class CanvasFeature @Inject constructor(
   private suspend fun startFramesAnimation() = coroutineScope {
     launch {
       var frameIndex = 0
-      while (state.value.isPreviewAnimation) {
+      while (state.value.editorConfiguration.isPreviewAnimation) {
         consumeAction(ChangeCurrentFrame(frameIndex))
         delay(200.milliseconds)
         frameIndex = (frameIndex + 1) % state.value.frames.size
@@ -81,10 +82,16 @@ class CanvasFeature @Inject constructor(
   override fun reduce(state: CanvasState, action: CanvasAction): CanvasState {
     return when (action) {
       is DrawStart -> {
+        if (state.editorConfiguration.isPreviewAnimation) return state
+
         val path = Path()
         val properties = PathProperties(
-          color = if (state.currentMode == Erase) Color.Transparent else state.color,
-          eraseMode = state.currentMode == Erase
+          color = if (state.editorConfiguration.currentMode == Erase) {
+            Color.Transparent
+          } else {
+            state.editorConfiguration.color
+          },
+          eraseMode = state.editorConfiguration.currentMode == Erase
         )
 
         path.moveTo(action.offset.x, action.offset.y)
@@ -138,15 +145,21 @@ class CanvasFeature @Inject constructor(
       }
 
       EraseClick -> state.copy(
-        currentMode = Erase
+        editorConfiguration = state.editorConfiguration.copy(
+          currentMode = Erase
+        ),
       )
 
       is ChangeColor -> state.copy(
-        colorPickerVisible = true,
+        editorConfiguration = state.editorConfiguration.copy(
+          colorPickerVisible = true,
+        )
       )
 
       PencilClick -> state.copy(
-        currentMode = Pencil
+        editorConfiguration = state.editorConfiguration.copy(
+          currentMode = Pencil
+        )
       )
 
       UndoChange -> {
@@ -198,8 +211,10 @@ class CanvasFeature @Inject constructor(
       }
 
       is OnColorChanged -> state.copy(
-        color = action.color,
-        colorPickerVisible = false
+        editorConfiguration = state.editorConfiguration.copy(
+          color = action.color,
+          colorPickerVisible = false
+        )
       )
 
       AddNewFrame -> {
@@ -229,11 +244,15 @@ class CanvasFeature @Inject constructor(
       }
 
       StartAnimation -> state.copy(
-        isPreviewAnimation = true
+        editorConfiguration = state.editorConfiguration.copy(
+          isPreviewAnimation = true
+        )
       )
 
       StopAnimation -> state.copy(
-        isPreviewAnimation = false,
+        editorConfiguration = state.editorConfiguration.copy(
+          isPreviewAnimation = false,
+        ),
         currentFrameIndex = state.frames.lastIndex
       )
 
