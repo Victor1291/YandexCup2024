@@ -19,5 +19,6 @@ sealed interface CanvasAction : MVIAction {
   ) : CanvasAction
 
   data object EraseClick : CanvasAction
+  data object PencilClick : CanvasAction
   data class ChangeColor(val color: Color) : CanvasAction
 }

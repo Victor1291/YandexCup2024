@@ -31,6 +31,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
@@ -45,6 +46,10 @@ fun CanvasScreen(
 
   fun onEraseClick() {
     actionConsumer.consumeAction(EraseClick)
+  }
+
+  fun onPencilClick() {
+    actionConsumer.consumeAction(PencilClick)
   }
 
   fun changeColor(color: Color) {
@@ -104,6 +109,7 @@ fun CanvasScreen(
           .padding(horizontal = 16.dp)
           .padding(bottom = 16.dp),
         onEraseClick = remember { ::onEraseClick },
+        onPencilClick = remember { ::onPencilClick },
         onChangeColor = remember { ::changeColor },
       )
     }

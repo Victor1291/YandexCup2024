@@ -28,6 +28,7 @@ data class PathWithProperties(
 @Immutable
 data class PathProperties(
   val color: Color,
+  val eraseMode: Boolean = false,
 )
 
 @Immutable

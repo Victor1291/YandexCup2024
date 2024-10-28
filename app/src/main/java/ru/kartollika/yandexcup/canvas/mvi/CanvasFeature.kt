@@ -1,6 +1,8 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.toImmutableList
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
@@ -8,8 +10,10 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
 
@@ -37,6 +41,7 @@ class CanvasFeature @Inject constructor(
       is UpdateOffset -> Unit
       EraseClick -> Unit
       is ChangeColor -> Unit
+      PencilClick -> Unit
     }
   }
 
@@ -45,8 +50,10 @@ class CanvasFeature @Inject constructor(
       is DrawStart -> {
         val path = Path()
         val properties = PathProperties(
-          color = state.color
+          color = if (state.currentMode == Erase) Color.Transparent else state.color,
+          eraseMode = state.currentMode == Erase
         )
+
         path.moveTo(action.offset.x, action.offset.y)
         state.copy(
           currentPath = PathWithProperties(
@@ -79,6 +86,10 @@ class CanvasFeature @Inject constructor(
 
       is ChangeColor -> state.copy(
         color = action.color
+      )
+
+      PencilClick -> state.copy(
+        currentMode = Pencil
       )
     }
   }

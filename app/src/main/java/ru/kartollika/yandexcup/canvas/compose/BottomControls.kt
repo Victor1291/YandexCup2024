@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import kotlin.random.Random
 
 @Composable fun BottomControls(
@@ -30,9 +33,17 @@ import kotlin.random.Random
     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
   ) {
     Icon(
-      modifier = Modifier.size(32.dp),
+      modifier = Modifier
+        .size(32.dp)
+        .clickable {
+          onPencilClick()
+        },
       painter = painterResource(R.drawable.pencil),
-      tint = Color.White,
+      tint = if (canvasState.currentMode == Pencil) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        Color.White
+      },
       contentDescription = null,
     )
 
@@ -44,10 +55,16 @@ import kotlin.random.Random
     )
 
     Icon(
-      modifier = Modifier.size(32.dp),
+      modifier = Modifier
+        .size(32.dp)
+        .clickable { onEraseClick() },
       painter = painterResource(R.drawable.erase),
       contentDescription = null,
-      tint = Color.White
+      tint = if (canvasState.currentMode == Erase) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        Color.White
+      },
     )
 
     Icon(
