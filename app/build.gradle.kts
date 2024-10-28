@@ -22,8 +22,10 @@ android {
 
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
   compileOptions {
@@ -49,6 +51,8 @@ dependencies {
   implementation(libs.androidx.ui.tooling.preview)
   implementation(libs.androidx.material3)
   implementation(libs.hilt.android)
+  implementation(libs.androidx.hilt.navigation.compose)
+  implementation(libs.kotlinx.collections.immutable)
   ksp(libs.hilt.compiler)
 
   testImplementation(libs.junit)

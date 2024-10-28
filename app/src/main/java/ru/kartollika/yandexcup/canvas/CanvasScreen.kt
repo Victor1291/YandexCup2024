@@ -1,40 +1,56 @@
 package ru.kartollika.yandexcup.canvas
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.compose.BottomControls
+import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
+import ru.kartollika.yandexcup.canvas.compose.TopControls
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasState
+import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
 fun CanvasScreen(
   modifier: Modifier = Modifier,
+  viewModel: CanvasViewModel = hiltViewModel()
 ) {
+  val state: CanvasState by viewModel.stateOwner.state.collectAsState()
+  val actionConsumer = viewModel.actionConsumer
+
+  fun onEraseClick() {
+    actionConsumer.consumeAction(EraseClick)
+  }
+
+  fun changeColor(color: Color) {
+    actionConsumer.consumeAction(ChangeColor(color))
+  }
+
   Surface(
     modifier = modifier,
   ) {
@@ -52,6 +68,12 @@ fun CanvasScreen(
 
       val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
       DrawingCanvas(
+        paths = {
+          state.paths
+        },
+        currentPath = {
+          state.currentPath
+        },
         modifier = Modifier
           .weight(1f)
           .fillMaxWidth()
@@ -59,165 +81,32 @@ fun CanvasScreen(
           .clip(RoundedCornerShape(32.dp))
           .drawBehind {
             drawImage(canvasBackground)
-          }
+          },
+        onDragStart = {
+          viewModel.actionConsumer.consumeAction(DrawStart(it))
+        },
+        onDrag = {
+          viewModel.actionConsumer.consumeAction(DrawDrag(it))
+        },
+        onDragEnd = {
+          viewModel.actionConsumer.consumeAction(DrawFinish)
+        },
+        onDragCancel = {
+          viewModel.actionConsumer.consumeAction(DrawFinish)
+        }
       )
 
       BottomControls(
+        canvasState = state,
         modifier = Modifier
           .fillMaxWidth()
           .navigationBarsPadding()
           .padding(horizontal = 16.dp)
           .padding(bottom = 16.dp),
+        onEraseClick = remember { ::onEraseClick },
+        onChangeColor = remember { ::changeColor },
       )
     }
-  }
-}
-
-@Composable fun TopControls(
-  modifier: Modifier = Modifier,
-) {
-  Row(
-    modifier = modifier,
-    horizontalArrangement = Arrangement.SpaceBetween,
-  ) {
-    Row {
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.undo),
-        tint = Color.White,
-        contentDescription = null
-      )
-
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.redo),
-        tint = Color.White,
-        contentDescription = null
-      )
-    }
-
-    Row {
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.bin),
-        tint = Color.White,
-        contentDescription = null
-      )
-
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.file_plus),
-        tint = Color.White,
-        contentDescription = null
-      )
-
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.layers),
-        tint = Color.White,
-        contentDescription = null
-      )
-    }
-
-    Row {
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.pause),
-        tint = Color.White,
-        contentDescription = null
-      )
-
-      Icon(
-        modifier = Modifier.size(32.dp),
-        painter = painterResource(R.drawable.play),
-        tint = Color.White,
-        contentDescription = null
-      )
-    }
-  }
-}
-
-@Composable fun DrawingCanvas(
-  modifier: Modifier = Modifier,
-) {
-  Canvas(
-    modifier = modifier,
-  ) {
-    when (motionEvent) {
-      MotionEvent.Down -> {
-        path.moveTo(currentPosition.x, currentPosition.y)
-        previousPosition = currentPosition
-      }
-
-      MotionEvent.Move -> {
-        path.quadraticBezierTo(
-          previousPosition.x,
-          previousPosition.y,
-          (previousPosition.x + currentPosition.x) / 2,
-          (previousPosition.y + currentPosition.y) / 2
-
-        )
-        previousPosition = currentPosition
-      }
-
-      MotionEvent.Up -> {
-        path.lineTo(currentPosition.x, currentPosition.y)
-        currentPosition = Offset.Unspecified
-        previousPosition = currentPosition
-        motionEvent = MotionEvent.Idle
-      }
-
-      else -> Unit
-    }
-
-    drawPath(
-      color = Color.Red,
-      path = path,
-      style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-    )
-  }
-}
-
-@Composable fun BottomControls(
-  modifier: Modifier = Modifier,
-) {
-  Row(
-    modifier = modifier,
-    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-  ) {
-    Icon(
-      modifier = Modifier.size(32.dp),
-      painter = painterResource(R.drawable.pencil),
-      tint = Color.White,
-      contentDescription = null,
-    )
-
-    Icon(
-      modifier = Modifier.size(32.dp),
-      painter = painterResource(R.drawable.brush),
-      contentDescription = null,
-      tint = Color.White
-    )
-
-    Icon(
-      modifier = Modifier.size(32.dp),
-      painter = painterResource(R.drawable.erase),
-      contentDescription = null,
-      tint = Color.White
-    )
-
-    Icon(
-      modifier = Modifier.size(32.dp),
-      painter = painterResource(R.drawable.instruments),
-      contentDescription = null,
-      tint = Color.White
-    )
-
-    Spacer(
-      modifier = Modifier
-        .size(32.dp)
-        .background(Color.Blue, CircleShape),
-    )
   }
 }
 

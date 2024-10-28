@@ -28,7 +28,7 @@ abstract class BaseViewModel<State : Reducer.MVIState, Action : Reducer.MVIActio
   }
 
   fun sendAction(event: Action) {
-    val (newState, _) = reducer.reduce(_state.value, event)
+    val newState = reducer.reduce(_state.value, event)
     _state.tryEmit(newState)
   }
 }
