@@ -12,6 +12,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
@@ -68,6 +69,7 @@ class CanvasFeature @Inject constructor(
       is StopAnimation -> Unit
       is ChangeCurrentFrame -> Unit
       is AnimationDelayChange -> Unit
+      CopyFrame -> Unit
     }
   }
 
@@ -267,6 +269,13 @@ class CanvasFeature @Inject constructor(
         editorConfiguration = state.editorConfiguration.copy(
           animationDelay = action.animationDelay.roundToInt()
         )
+      )
+
+      CopyFrame -> state.copy(
+        frames = state.frames.toMutableList().apply {
+          add(state.currentFrame.copy())
+        }.toImmutableList(),
+        currentFrameIndex = state.frames.lastIndex + 1
       )
     }
   }

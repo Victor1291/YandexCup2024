@@ -42,6 +42,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
@@ -118,6 +119,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(AnimationDelayChange(animationDelay))
   }
 
+  fun copyFrame() {
+    viewModel.actionConsumer.consumeAction(CopyFrame)
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -135,6 +140,7 @@ fun CanvasScreen(
     onColorClick = remember { ::changeColor },
     onColorChanged = remember { ::onColorChanged },
     onDelayChanged = remember { ::onDelayChanged },
+    copyFrame = remember { ::copyFrame }
   )
 }
 
@@ -156,6 +162,7 @@ private fun CanvasScreen(
   onColorClick: () -> Unit = {},
   onColorChanged: (Color) -> Unit = {},
   onDelayChanged: (Float) -> Unit = {},
+  copyFrame: () -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
@@ -178,6 +185,7 @@ private fun CanvasScreen(
           addFrame = addFrame,
           stopAnimation = stopAnimation,
           startAnimation = startAnimation,
+          copyFrame = copyFrame,
         )
 
         val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
@@ -260,91 +268,6 @@ private fun CanvasScreen(
 }
 
 @Composable
-private fun BottomControls(
-  editorConfiguration: EditorConfiguration,
-  modifier: Modifier = Modifier,
-  onPencilClick: () -> Unit = {},
-  onEraseClick: () -> Unit = {},
-  onColorClick: () -> Unit = {},
-) {
-  Controls(
-    modifier = modifier,
-    centerSpacedBy = 16.dp,
-    centerControls = {
-      EditorButtons(
-        onPencilClick = onPencilClick,
-        editorConfiguration = editorConfiguration,
-        onEraseClick = onEraseClick,
-        onColorClick = onColorClick
-      )
-    },
-  )
-}
-
-@Composable
-private fun EditorButtons(
-  onPencilClick: () -> Unit,
-  editorConfiguration: EditorConfiguration,
-  onEraseClick: () -> Unit,
-  onColorClick: () -> Unit
-) {
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable {
-        onPencilClick()
-      },
-    painter = painterResource(R.drawable.pencil),
-    tint = if (editorConfiguration.currentMode == Pencil) {
-      MaterialTheme.colorScheme.primary
-    } else {
-      Color.White
-    },
-    contentDescription = null,
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable { onEraseClick() },
-    painter = painterResource(R.drawable.erase),
-    contentDescription = null,
-    tint = if (editorConfiguration.currentMode == Erase) {
-      MaterialTheme.colorScheme.primary
-    } else {
-      Color.White
-    },
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .alpha(0.3f),
-    painter = painterResource(R.drawable.instruments),
-    contentDescription = null,
-    tint = Color.White
-  )
-
-  Spacer(
-    modifier = Modifier
-      .size(32.dp)
-      .border(
-        width = 1.5.dp,
-        color = MaterialTheme.colorScheme.primary,
-        shape = CircleShape
-      )
-      .padding(4.dp)
-      .background(editorConfiguration.color, CircleShape)
-      .clickable {
-        onColorClick()
-      },
-  )
-}
-
-@NonRestartableComposable
-@Composable
 private fun Canvas(
   canvasState: () -> CanvasState,
   modifier: Modifier = Modifier,
@@ -368,165 +291,6 @@ private fun Canvas(
     onDrag = onDrag,
     onDragEnd = onDragEnd,
     onDragCancel = onDragEnd
-  )
-}
-
-@Composable
-private fun TopControls(
-  editorConfiguration: EditorConfiguration,
-  modifier: Modifier = Modifier,
-  undoChange: () -> Unit = {},
-  redoChange: () -> Unit = {},
-  deleteFrame: () -> Unit = {},
-  addFrame: () -> Unit = {},
-  stopAnimation: () -> Unit = {},
-  startAnimation: () -> Unit = {},
-  canUndo: () -> Boolean = { false },
-  canRedo: () -> Boolean = { false }
-) {
-  Controls(
-    modifier = modifier,
-    startControls = {
-      UndoRedoButtons(
-        editorConfiguration = editorConfiguration,
-        canUndo = canUndo,
-        undoChange = undoChange,
-        canRedo = canRedo,
-        redoChange = redoChange
-      )
-    },
-    centerControls = {
-      FramesButtons(
-        editorConfiguration = editorConfiguration,
-        deleteFrame = deleteFrame,
-        addFrame = addFrame
-      )
-    },
-    endControls = {
-      AnimationButtons(
-        editorConfiguration = editorConfiguration,
-        stopAnimation = stopAnimation,
-        startAnimation = startAnimation
-      )
-    },
-  )
-}
-
-@Composable
-private fun AnimationButtons(
-  editorConfiguration: EditorConfiguration,
-  stopAnimation: () -> Unit,
-  startAnimation: () -> Unit
-) {
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .alpha(if (editorConfiguration.isPreviewAnimation) 1f else 0.3f)
-      .clickable(
-        enabled = editorConfiguration.isPreviewAnimation
-      ) {
-        stopAnimation()
-      },
-    painter = painterResource(R.drawable.pause),
-    tint = Color.White,
-    contentDescription = null
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .alpha(if (editorConfiguration.isPreviewAnimation) 0.3f else 1f)
-      .clickable(
-        enabled = !editorConfiguration.isPreviewAnimation
-      ) {
-        startAnimation()
-      },
-    painter = painterResource(R.drawable.play),
-    tint = Color.White,
-    contentDescription = null
-  )
-}
-
-@Composable
-private fun FramesButtons(
-  editorConfiguration: EditorConfiguration,
-  deleteFrame: () -> Unit,
-  addFrame: () -> Unit
-) {
-  if (editorConfiguration.isPreviewAnimation) return
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable { deleteFrame() },
-    painter = painterResource(R.drawable.bin),
-    tint = Color.White,
-    contentDescription = null
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable { addFrame() },
-    painter = painterResource(R.drawable.file_plus),
-    tint = Color.White,
-    contentDescription = null
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .alpha(0.3f),
-    painter = painterResource(R.drawable.layers),
-    tint = Color.White,
-    contentDescription = null
-  )
-}
-
-@Composable
-private fun UndoRedoButtons(
-  editorConfiguration: EditorConfiguration,
-  canUndo: () -> Boolean,
-  undoChange: () -> Unit,
-  canRedo: () -> Boolean,
-  redoChange: () -> Unit
-) {
-  if (editorConfiguration.isPreviewAnimation) return
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable(
-        enabled = canUndo()
-      ) {
-        undoChange()
-      }
-      .graphicsLayer {
-        alpha = if (canUndo()) 1f else 0.3f
-      },
-    painter = painterResource(R.drawable.undo),
-    tint = Color.White,
-    contentDescription = null,
-  )
-
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable(
-        enabled = canRedo()
-      ) {
-        redoChange()
-      }
-      .graphicsLayer {
-        alpha = if (canRedo()) 1f else 0.3f
-      },
-    painter = painterResource(R.drawable.redo),
-    tint = Color.White,
-    contentDescription = null
   )
 }
 

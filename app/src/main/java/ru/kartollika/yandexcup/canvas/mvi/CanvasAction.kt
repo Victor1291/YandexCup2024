@@ -30,4 +30,5 @@ sealed interface CanvasAction : MVIAction {
   data object StopAnimation : CanvasAction
   data class ChangeCurrentFrame(val frameIndex: Int) : CanvasAction
   data class AnimationDelayChange(val animationDelay: Float) : CanvasAction
+  data object CopyFrame : CanvasAction
 }
