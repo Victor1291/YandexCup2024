@@ -3,12 +3,12 @@ package ru.kartollika.yandexcup.canvas.compose
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -70,21 +70,27 @@ fun TopControls(
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Icon(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier
+          .size(32.dp)
+          .alpha(0.3f),
         painter = painterResource(R.drawable.bin),
         tint = Color.White,
         contentDescription = null
       )
 
       Icon(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier
+          .size(32.dp)
+          .alpha(0.3f),
         painter = painterResource(R.drawable.file_plus),
         tint = Color.White,
         contentDescription = null
       )
 
       Icon(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier
+          .size(32.dp)
+          .alpha(0.3f),
         painter = painterResource(R.drawable.layers),
         tint = Color.White,
         contentDescription = null
@@ -95,14 +101,18 @@ fun TopControls(
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Icon(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier
+          .size(32.dp)
+          .alpha(0.3f),
         painter = painterResource(R.drawable.pause),
         tint = Color.White,
         contentDescription = null
       )
 
       Icon(
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier
+          .size(32.dp)
+          .alpha(0.3f),
         painter = painterResource(R.drawable.play),
         tint = Color.White,
         contentDescription = null

@@ -15,7 +15,8 @@ data class CanvasState(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
   val currentPath: PathWithProperties? = null,
   val lastOffset: Offset = Offset.Unspecified,
-  val undoPaths: ImmutableList<PathWithProperties> = persistentListOf()
+  val undoPaths: ImmutableList<PathWithProperties> = persistentListOf(),
+  val colorPickerVisible: Boolean = false,
 ) : MVIState {
   val canUndo: Boolean
     get() = paths.isNotEmpty()

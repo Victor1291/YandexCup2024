@@ -1,10 +1,12 @@
 package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -12,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -19,14 +23,13 @@ import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
-import kotlin.random.Random
 
 @Composable fun BottomControls(
   canvasState: CanvasState,
   modifier: Modifier = Modifier,
   onEraseClick: () -> Unit = {},
   onPencilClick: () -> Unit = {},
-  onChangeColor: (Color) -> Unit = {},
+  onChangeColor: () -> Unit = {},
 ) {
   Row(
     modifier = modifier,
@@ -35,6 +38,7 @@ import kotlin.random.Random
     Icon(
       modifier = Modifier
         .size(32.dp)
+        .clip(CircleShape)
         .clickable {
           onPencilClick()
         },
@@ -48,15 +52,9 @@ import kotlin.random.Random
     )
 
     Icon(
-      modifier = Modifier.size(32.dp),
-      painter = painterResource(R.drawable.brush),
-      contentDescription = null,
-      tint = Color.White
-    )
-
-    Icon(
       modifier = Modifier
         .size(32.dp)
+        .clip(CircleShape)
         .clickable { onEraseClick() },
       painter = painterResource(R.drawable.erase),
       contentDescription = null,
@@ -68,7 +66,9 @@ import kotlin.random.Random
     )
 
     Icon(
-      modifier = Modifier.size(32.dp),
+      modifier = Modifier
+        .size(32.dp)
+        .alpha(0.3f),
       painter = painterResource(R.drawable.instruments),
       contentDescription = null,
       tint = Color.White
@@ -77,11 +77,15 @@ import kotlin.random.Random
     Spacer(
       modifier = Modifier
         .size(32.dp)
+        .border(
+          width = 1.5.dp,
+          color = MaterialTheme.colorScheme.primary,
+          shape = CircleShape
+        )
+        .padding(4.dp)
         .background(canvasState.color, CircleShape)
         .clickable {
-          onChangeColor(
-            if (Random.nextBoolean()) Color.Red else Color.Blue
-          )
+          onChangeColor()
         },
     )
   }

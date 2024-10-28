@@ -11,6 +11,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
@@ -47,6 +48,7 @@ class CanvasFeature @Inject constructor(
       is PencilClick -> Unit
       is UndoChange -> Unit
       is RedoChange -> Unit
+      is OnColorChanged -> Unit
     }
   }
 
@@ -93,7 +95,7 @@ class CanvasFeature @Inject constructor(
       )
 
       is ChangeColor -> state.copy(
-        color = action.color
+        colorPickerVisible = true,
       )
 
       PencilClick -> state.copy(
@@ -133,6 +135,11 @@ class CanvasFeature @Inject constructor(
           undoPaths = undoPaths,
         )
       }
+
+      is OnColorChanged -> state.copy(
+        color = action.color,
+        colorPickerVisible = false
+      )
     }
   }
 }
