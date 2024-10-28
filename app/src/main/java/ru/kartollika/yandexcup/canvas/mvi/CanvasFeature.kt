@@ -273,7 +273,11 @@ class CanvasFeature @Inject constructor(
 
       CopyFrame -> state.copy(
         frames = state.frames.toMutableList().apply {
-          add(state.currentFrame.copy())
+          add(
+            state.currentFrame.copy(
+              undoPaths = persistentListOf()
+            )
+          )
         }.toImmutableList(),
         currentFrameIndex = state.frames.lastIndex + 1
       )
