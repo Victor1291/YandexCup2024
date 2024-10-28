@@ -59,4 +59,5 @@ data class EditorConfiguration(
   val color: Color = Color.Blue,
   val colorPickerVisible: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
+  val animationDelay: Int = 200
 )

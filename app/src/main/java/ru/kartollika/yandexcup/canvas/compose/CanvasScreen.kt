@@ -17,8 +17,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
@@ -111,6 +114,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(DrawFinish)
   }
 
+  fun onDelayChanged(animationDelay: Float) {
+    viewModel.actionConsumer.consumeAction(AnimationDelayChange(animationDelay))
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -126,7 +133,8 @@ fun CanvasScreen(
     onPencilClick = remember { ::onPencilClick },
     onEraseClick = remember { ::onEraseClick },
     onColorClick = remember { ::changeColor },
-    onColorChanged = remember { ::onColorChanged }
+    onColorChanged = remember { ::onColorChanged },
+    onDelayChanged = remember { ::onDelayChanged },
   )
 }
 
@@ -147,6 +155,7 @@ private fun CanvasScreen(
   onEraseClick: () -> Unit = {},
   onColorClick: () -> Unit = {},
   onColorChanged: (Color) -> Unit = {},
+  onDelayChanged: (Float) -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
@@ -187,17 +196,35 @@ private fun CanvasScreen(
           onDragEnd = onDragEnd,
         )
 
-        BottomControls(
-          modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-          editorConfiguration = canvasState.editorConfiguration,
-          onPencilClick = onPencilClick,
-          onEraseClick = onEraseClick,
-          onColorClick = onColorClick
-        )
+        if (canvasState.editorConfiguration.isPreviewAnimation) {
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .navigationBarsPadding()
+              .padding(horizontal = 16.dp)
+              .padding(bottom = 16.dp)
+          ) {
+            Slider(
+              value = canvasState.editorConfiguration.animationDelay.toFloat(),
+              valueRange = 10f..1000f,
+              onValueChange = { animationDelay ->
+                onDelayChanged(animationDelay)
+              },
+            )
+          }
+        } else {
+          BottomControls(
+            modifier = Modifier
+              .fillMaxWidth()
+              .navigationBarsPadding()
+              .padding(horizontal = 16.dp)
+              .padding(bottom = 16.dp),
+            editorConfiguration = canvasState.editorConfiguration,
+            onPencilClick = onPencilClick,
+            onEraseClick = onEraseClick,
+            onColorClick = onColorClick
+          )
+        }
       }
 
       if (canvasState.editorConfiguration.colorPickerVisible) {
@@ -316,6 +343,7 @@ private fun EditorButtons(
   )
 }
 
+@NonRestartableComposable
 @Composable
 private fun Canvas(
   canvasState: () -> CanvasState,

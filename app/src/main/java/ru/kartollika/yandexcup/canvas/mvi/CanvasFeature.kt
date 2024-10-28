@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
@@ -28,6 +29,7 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
@@ -65,6 +67,7 @@ class CanvasFeature @Inject constructor(
       is DeleteFrame -> Unit
       is StopAnimation -> Unit
       is ChangeCurrentFrame -> Unit
+      is AnimationDelayChange -> Unit
     }
   }
 
@@ -73,7 +76,7 @@ class CanvasFeature @Inject constructor(
       var frameIndex = 0
       while (state.value.editorConfiguration.isPreviewAnimation) {
         consumeAction(ChangeCurrentFrame(frameIndex))
-        delay(200.milliseconds)
+        delay(state.value.editorConfiguration.animationDelay.milliseconds)
         frameIndex = (frameIndex + 1) % state.value.frames.size
       }
     }
@@ -258,6 +261,12 @@ class CanvasFeature @Inject constructor(
 
       is ChangeCurrentFrame -> state.copy(
         currentFrameIndex = action.frameIndex
+      )
+
+      is AnimationDelayChange -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          animationDelay = action.animationDelay.roundToInt()
+        )
       )
     }
   }
