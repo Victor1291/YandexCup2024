@@ -11,6 +11,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
@@ -36,12 +37,13 @@ class CanvasFeature @Inject constructor(
         }
       }
 
-      DrawFinish -> Unit
+      is DrawFinish -> Unit
       is DrawStart -> Unit
       is UpdateOffset -> Unit
-      EraseClick -> Unit
+      is EraseClick -> Unit
       is ChangeColor -> Unit
-      PencilClick -> Unit
+      is PencilClick -> Unit
+      is UndoChange -> Unit
     }
   }
 
@@ -72,11 +74,14 @@ class CanvasFeature @Inject constructor(
       }
 
       DrawFinish -> {
+        val paths = state.paths.toMutableList().apply {
+          state.currentPath?.let(this::add)
+        }.toImmutableList()
+
         state.copy(
-          paths = state.paths.toMutableList().apply {
-            state.currentPath?.let(this::add)
-          }.toImmutableList(),
-          currentPath = null
+          paths = paths,
+          currentPath = null,
+          canUndo = paths.isNotEmpty()
         )
       }
 
@@ -91,6 +96,17 @@ class CanvasFeature @Inject constructor(
       PencilClick -> state.copy(
         currentMode = Pencil
       )
+
+      UndoChange -> {
+        val paths = state.paths.toMutableList().apply {
+          removeAt(state.paths.lastIndex)
+        }.toImmutableList()
+
+        state.copy(
+          paths = paths,
+          canUndo = paths.isNotEmpty()
+        )
+      }
     }
   }
 }

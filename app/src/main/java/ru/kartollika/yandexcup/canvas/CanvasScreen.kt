@@ -26,6 +26,7 @@ import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.BottomControls
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.compose.TopControls
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
@@ -56,6 +57,10 @@ fun CanvasScreen(
     actionConsumer.consumeAction(ChangeColor(color))
   }
 
+  fun undoChange() {
+    actionConsumer.consumeAction(CanvasAction.UndoChange)
+  }
+
   Surface(
     modifier = modifier,
   ) {
@@ -64,11 +69,13 @@ fun CanvasScreen(
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       TopControls(
+        canvasState = state,
         modifier = Modifier
           .fillMaxWidth()
           .padding(top = 16.dp)
           .padding(horizontal = 16.dp)
           .statusBarsPadding(),
+        undoChange = remember { ::undoChange }
       )
 
       val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
