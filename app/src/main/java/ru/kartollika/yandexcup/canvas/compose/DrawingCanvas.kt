@@ -9,9 +9,11 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scaleMatrix
 import kotlinx.collections.immutable.ImmutableList
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 
@@ -25,6 +27,7 @@ fun DrawingCanvas(
   onDragEnd: () -> Unit = {},
   onDragCancel: () -> Unit = {},
   onDrag: (Offset) -> Unit = {},
+  scale: Float = 1f
 ) {
   val drawModifier = Modifier
     .pointerInput(Unit) {
@@ -40,51 +43,55 @@ fun DrawingCanvas(
     modifier = modifier
       .then(drawModifier),
   ) {
-    with(drawContext.canvas.nativeCanvas) {
-      val checkPoint = saveLayer(null, null)
-      previousPaths()?.forEach { pathWithProperties ->
-        drawPath(
-          path = pathWithProperties.path,
-          color = pathWithProperties.properties.color.copy(alpha = 0.3f),
-          style = Stroke(
-            width = 4.dp.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round
-          ),
-          blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
-        )
+    scale(scale, scale, pivot = Offset(0f, 0f)) {
+      with(drawContext.canvas.nativeCanvas) {
+        val checkPoint = saveLayer(null, null)
+        previousPaths()?.forEach { pathWithProperties ->
+          drawPath(
+            path = pathWithProperties.path,
+            color = pathWithProperties.properties.color.copy(alpha = 0.3f),
+            style = Stroke(
+              width = 4.dp.toPx(),
+              cap = StrokeCap.Round,
+              join = StrokeJoin.Round
+            ),
+            blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
+          )
+        }
+        restoreToCount(checkPoint)
       }
-      restoreToCount(checkPoint)
     }
 
-    with(drawContext.canvas.nativeCanvas) {
-      val checkPoint = saveLayer(null, null)
-      paths().forEach { pathWithProperties ->
-        drawPath(
-          path = pathWithProperties.path,
-          color = pathWithProperties.properties.color,
-          style = Stroke(
-            width = 4.dp.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round
-          ),
-          blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
-        )
-      }
+    scale(scale, scale, pivot = Offset(0f, 0f)) {
+      with(drawContext.canvas.nativeCanvas) {
+        val checkPoint = saveLayer(null, null)
+        paths().forEach { pathWithProperties ->
+          drawPath(
+            path = pathWithProperties.path,
+            color = pathWithProperties.properties.color,
+            style = Stroke(
+              width = 4.dp.toPx(),
+              cap = StrokeCap.Round,
+              join = StrokeJoin.Round
+            ),
+            blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
+          )
+        }
 
-      currentPath()?.let { pathWithProperties ->
-        drawPath(
-          path = pathWithProperties.path,
-          color = pathWithProperties.properties.color,
-          style = Stroke(
-            width = 4.dp.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round
-          ),
-          blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
-        )
+        currentPath()?.let { pathWithProperties ->
+          drawPath(
+            path = pathWithProperties.path,
+            color = pathWithProperties.properties.color,
+            style = Stroke(
+              width = 4.dp.toPx(),
+              cap = StrokeCap.Round,
+              join = StrokeJoin.Round
+            ),
+            blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
+          )
+        }
+        restoreToCount(checkPoint)
       }
-      restoreToCount(checkPoint)
     }
   }
 }

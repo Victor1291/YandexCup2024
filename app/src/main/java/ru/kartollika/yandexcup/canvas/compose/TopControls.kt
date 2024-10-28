@@ -26,7 +26,8 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   startAnimation: () -> Unit = {},
   canUndo: () -> Boolean = { false },
   canRedo: () -> Boolean = { false },
-  copyFrame: () -> Unit = {}
+  copyFrame: () -> Unit = {},
+  showFrames: () -> Unit = {},
 ) {
   Controls(
     modifier = modifier,
@@ -44,7 +45,8 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         editorConfiguration = editorConfiguration,
         deleteFrame = deleteFrame,
         addFrame = addFrame,
-        copyFrame = copyFrame
+        copyFrame = copyFrame,
+        showFrames = showFrames
       )
     },
     endControls = {
@@ -99,7 +101,8 @@ private fun FramesButtons(
   editorConfiguration: EditorConfiguration,
   deleteFrame: () -> Unit,
   addFrame: () -> Unit,
-  copyFrame: () -> Unit
+  copyFrame: () -> Unit,
+  showFrames: () -> Unit
 ) {
   if (editorConfiguration.isPreviewAnimation) return
   Icon(
@@ -125,7 +128,10 @@ private fun FramesButtons(
   Icon(
     modifier = Modifier
       .size(32.dp)
-      .alpha(0.3f),
+      .clip(CircleShape)
+      .clickable {
+        showFrames()
+      },
     painter = painterResource(R.drawable.layers),
     tint = Color.White,
     contentDescription = null

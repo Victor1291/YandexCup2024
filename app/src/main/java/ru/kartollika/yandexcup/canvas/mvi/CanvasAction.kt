@@ -2,6 +2,7 @@ package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.mvi2.MVIAction
 
 sealed interface CanvasAction : MVIAction {
@@ -25,10 +26,13 @@ sealed interface CanvasAction : MVIAction {
   data object UndoChange : CanvasAction
   data object RedoChange : CanvasAction
   data object AddNewFrame : CanvasAction
-  data object DeleteFrame : CanvasAction
+  data class DeleteFrame(val frameIndex: FrameIndex) : CanvasAction
   data object StartAnimation : CanvasAction
   data object StopAnimation : CanvasAction
   data class ChangeCurrentFrame(val frameIndex: Int) : CanvasAction
   data class AnimationDelayChange(val animationDelay: Float) : CanvasAction
   data object CopyFrame : CanvasAction
+  data object ShowFrames : CanvasAction
+  data object HideFrames : CanvasAction
+  data class SelectFrame(val frameIndex: Int) : CanvasAction
 }

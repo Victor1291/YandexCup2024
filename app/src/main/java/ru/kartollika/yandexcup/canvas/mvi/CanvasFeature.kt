@@ -8,6 +8,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.kartollika.yandexcup.canvas.FrameIndex.Current
+import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
@@ -18,9 +20,12 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.SelectFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
@@ -70,6 +75,9 @@ class CanvasFeature @Inject constructor(
       is ChangeCurrentFrame -> Unit
       is AnimationDelayChange -> Unit
       CopyFrame -> Unit
+      ShowFrames -> Unit
+      HideFrames -> Unit
+      is SelectFrame -> Unit
     }
   }
 
@@ -232,16 +240,20 @@ class CanvasFeature @Inject constructor(
         )
       }
 
-      DeleteFrame -> {
+      is DeleteFrame -> {
         return if (state.frames.size == 1) {
           state.copy(
             frames = persistentListOf(Frame()),
             currentFrameIndex = 0
           )
         } else {
+          val indexToRemove = when (val frameIndex = action.frameIndex) {
+            is Current -> state.currentFrameIndex
+            is Index -> frameIndex.index
+          }
           state.copy(
             frames = state.frames.toMutableList().apply {
-              removeLast()
+              removeAt(indexToRemove)
             }.toImmutableList(),
             currentFrameIndex = state.frames.lastIndex - 1
           )
@@ -280,6 +292,19 @@ class CanvasFeature @Inject constructor(
           )
         }.toImmutableList(),
         currentFrameIndex = state.frames.lastIndex + 1
+      )
+
+      ShowFrames -> state.copy(
+        framesSheetVisible = true
+      )
+
+      HideFrames -> state.copy(
+        framesSheetVisible = false
+      )
+
+      is SelectFrame -> state.copy(
+        currentFrameIndex = action.frameIndex,
+        framesSheetVisible = false
       )
     }
   }

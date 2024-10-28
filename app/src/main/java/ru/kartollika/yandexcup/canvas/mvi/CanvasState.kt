@@ -13,6 +13,7 @@ data class CanvasState(
   val frames: Frames = persistentListOf(Frame()),
   val currentFrameIndex: Int = 0,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
+  val framesSheetVisible: Boolean = false,
 ) : MVIState {
 
   val canUndo: Boolean

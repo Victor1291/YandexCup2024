@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.FrameIndex
+import ru.kartollika.yandexcup.canvas.frames.FramesScreen
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
@@ -38,11 +43,14 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CanvasScreen(
   modifier: Modifier = Modifier,
@@ -79,8 +87,8 @@ fun CanvasScreen(
     actionConsumer.consumeAction(CanvasAction.AddNewFrame)
   }
 
-  fun deleteFrame() {
-    actionConsumer.consumeAction(CanvasAction.DeleteFrame)
+  fun deleteFrame(frameIndex: FrameIndex) {
+    actionConsumer.consumeAction(CanvasAction.DeleteFrame(frameIndex))
   }
 
   fun startAnimation() {
@@ -111,6 +119,18 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CopyFrame)
   }
 
+  fun showFrames() {
+    viewModel.actionConsumer.consumeAction(ShowFrames)
+  }
+
+  fun hideFrames() {
+    viewModel.actionConsumer.consumeAction(HideFrames)
+  }
+
+  fun selectFrame(frameIndex: Int) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.SelectFrame(frameIndex))
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -128,17 +148,21 @@ fun CanvasScreen(
     onColorClick = remember { ::changeColor },
     onColorChanged = remember { ::onColorChanged },
     onDelayChanged = remember { ::onDelayChanged },
-    copyFrame = remember { ::copyFrame }
+    copyFrame = remember { ::copyFrame },
+    showFrames = remember { ::showFrames },
+    hideFrames = remember { ::hideFrames },
+    selectFrame = remember { ::selectFrame }
   )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CanvasScreen(
   modifier: Modifier,
   canvasState: CanvasState,
   undoChange: () -> Unit = {},
   redoChange: () -> Unit = {},
-  deleteFrame: () -> Unit = {},
+  deleteFrame: (FrameIndex) -> Unit = {},
   addFrame: () -> Unit = {},
   stopAnimation: () -> Unit = {},
   startAnimation: () -> Unit = {},
@@ -151,108 +175,133 @@ private fun CanvasScreen(
   onColorChanged: (Color) -> Unit = {},
   onDelayChanged: (Float) -> Unit = {},
   copyFrame: () -> Unit = {},
+  showFrames: () -> Unit = {},
+  hideFrames: () -> Unit = {},
+  selectFrame: (Int) -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
   ) {
-    Box {
-      Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+
+    if (canvasState.framesSheetVisible) {
+      ModalBottomSheet(
+        sheetState = rememberModalBottomSheetState(),
+        onDismissRequest = {
+          hideFrames()
+        }
       ) {
-        TopControls(
-          editorConfiguration = canvasState.editorConfiguration,
-          modifier = Modifier
-            .statusBarsPadding()
-            .fillMaxWidth()
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp),
-          undoChange = undoChange,
-          redoChange = redoChange,
-          deleteFrame = deleteFrame,
-          addFrame = addFrame,
-          stopAnimation = stopAnimation,
-          startAnimation = startAnimation,
-          copyFrame = copyFrame,
-          canUndo = { canvasState.canUndo },
-          canRedo = { canvasState.canRedo },
-        )
-
-        val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
-        Canvas(
-          modifier = modifier
-            .weight(1f)
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clip(RoundedCornerShape(32.dp))
-            .drawBehind {
-              drawImage(canvasBackground)
-            },
-          canvasState = { canvasState },
-          onDragStart = onDragStart,
-          onDrag = onDrag,
-          onDragEnd = onDragEnd,
-        )
-
-        if (canvasState.editorConfiguration.isPreviewAnimation) {
-          Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .navigationBarsPadding()
-              .padding(horizontal = 16.dp)
-              .padding(bottom = 16.dp)
-          ) {
-            Slider(
-              value = canvasState.editorConfiguration.animationDelay.toFloat(),
-              valueRange = 10f..1000f,
-              onValueChange = { animationDelay ->
-                onDelayChanged(animationDelay)
-              },
-            )
+        FramesScreen(
+          modifier = Modifier.fillMaxWidth(),
+          frames = canvasState.frames,
+          selectFrame = selectFrame,
+          deleteFrame = { index ->
+            deleteFrame(FrameIndex.Index(index))
           }
-        } else {
-          BottomControls(
-            modifier = Modifier
-              .fillMaxWidth()
-              .navigationBarsPadding()
-              .padding(horizontal = 16.dp)
-              .padding(bottom = 16.dp),
-            editorConfiguration = canvasState.editorConfiguration,
-            onPencilClick = onPencilClick,
-            onEraseClick = onEraseClick,
-            onColorClick = onColorClick
+        )
+      }
+    }
+  }
+
+  Box {
+    Column(
+      modifier = Modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      TopControls(
+        editorConfiguration = canvasState.editorConfiguration,
+        modifier = Modifier
+          .statusBarsPadding()
+          .fillMaxWidth()
+          .padding(top = 16.dp)
+          .padding(horizontal = 16.dp),
+        undoChange = undoChange,
+        redoChange = redoChange,
+        deleteFrame = {
+          deleteFrame(FrameIndex.Current)
+        },
+        addFrame = addFrame,
+        stopAnimation = stopAnimation,
+        startAnimation = startAnimation,
+        copyFrame = copyFrame,
+        canUndo = { canvasState.canUndo },
+        canRedo = { canvasState.canRedo },
+        showFrames = showFrames
+      )
+
+      val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
+      Canvas(
+        modifier = modifier
+          .weight(1f)
+          .fillMaxWidth()
+          .padding(16.dp)
+          .clip(RoundedCornerShape(32.dp))
+          .drawBehind {
+            drawImage(canvasBackground)
+          },
+        canvasState = { canvasState },
+        onDragStart = onDragStart,
+        onDrag = onDrag,
+        onDragEnd = onDragEnd,
+      )
+
+      if (canvasState.editorConfiguration.isPreviewAnimation) {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+        ) {
+          Slider(
+            value = canvasState.editorConfiguration.animationDelay.toFloat(),
+            valueRange = 10f..1000f,
+            onValueChange = { animationDelay ->
+              onDelayChanged(animationDelay)
+            },
           )
         }
-      }
-
-      if (canvasState.editorConfiguration.colorPickerVisible) {
-        ColorsPicker(
+      } else {
+        BottomControls(
           modifier = Modifier
-            .padding(horizontal = 48.dp)
+            .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(bottom = 64.dp)
-            .align(Alignment.BottomCenter)
-            .background(Color.Gray, RoundedCornerShape(4.dp))
-            .padding(16.dp),
-          smallPickerColors = persistentListOf(
-            Color.White,
-            Color.Red,
-            Color.Blue,
-            Color.Black,
-          ),
-          colorItem = { color ->
-            ColorItem(
-              color = color,
-              modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape),
-              onPick = {
-                onColorChanged(color)
-              }
-            )
-          },
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+          editorConfiguration = canvasState.editorConfiguration,
+          onPencilClick = onPencilClick,
+          onEraseClick = onEraseClick,
+          onColorClick = onColorClick
         )
       }
+    }
+
+    if (canvasState.editorConfiguration.colorPickerVisible) {
+      ColorsPicker(
+        modifier = Modifier
+          .padding(horizontal = 48.dp)
+          .navigationBarsPadding()
+          .padding(bottom = 64.dp)
+          .align(Alignment.BottomCenter)
+          .background(Color.Gray, RoundedCornerShape(4.dp))
+          .padding(16.dp),
+        smallPickerColors = persistentListOf(
+          Color.White,
+          Color.Red,
+          Color.Blue,
+          Color.Black,
+        ),
+        colorItem = { color ->
+          ColorItem(
+            color = color,
+            modifier = Modifier
+              .size(32.dp)
+              .clip(CircleShape),
+            onPick = {
+              onColorChanged(color)
+            }
+          )
+        },
+      )
     }
   }
 }
