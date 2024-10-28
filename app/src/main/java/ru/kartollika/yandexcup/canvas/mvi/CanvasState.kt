@@ -15,6 +15,12 @@ data class CanvasState(
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
 ) : MVIState {
 
+  val canUndo: Boolean
+    get() = currentFrame.paths.isNotEmpty()
+
+  val canRedo: Boolean
+    get() = currentFrame.undoPaths.isNotEmpty()
+
   val currentFrame: Frame
     get() = frames[currentFrameIndex]
 
