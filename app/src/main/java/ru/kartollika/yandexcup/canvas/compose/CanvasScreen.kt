@@ -1,6 +1,7 @@
-package ru.kartollika.yandexcup.canvas
+package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,21 +21,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
-import ru.kartollika.yandexcup.canvas.compose.BottomControls
-import ru.kartollika.yandexcup.canvas.compose.ColorItem
-import ru.kartollika.yandexcup.canvas.compose.ColorsPicker
-import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
-import ru.kartollika.yandexcup.canvas.compose.TopControls
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
@@ -49,7 +49,7 @@ fun CanvasScreen(
   modifier: Modifier = Modifier,
   viewModel: CanvasViewModel = hiltViewModel()
 ) {
-  val state: CanvasState by viewModel.stateOwner.state.collectAsState()
+  val canvasState: CanvasState by viewModel.stateOwner.state.collectAsState()
   val actionConsumer = viewModel.actionConsumer
 
   fun onEraseClick() {
@@ -84,6 +84,14 @@ fun CanvasScreen(
     actionConsumer.consumeAction(CanvasAction.DeleteFrame)
   }
 
+  fun startAnimation() {
+    actionConsumer.consumeAction(CanvasAction.StartAnimation)
+  }
+
+  fun stopAnimation() {
+    actionConsumer.consumeAction(CanvasAction.StopAnimation)
+  }
+
   Surface(
     modifier = modifier,
   ) {
@@ -93,28 +101,122 @@ fun CanvasScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         TopControls(
-          canvasState = state,
           modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp)
             .padding(horizontal = 16.dp)
             .statusBarsPadding(),
-          undoChange = remember { ::undoChange },
-          redoChange = remember { ::redoChange },
-          addFrame = remember { ::addFrame },
-          deleteFrame = remember { ::deleteFrame },
+          startControls = {
+            if (canvasState.isPreviewAnimation) return@TopControls
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .clickable(
+                  enabled = canvasState.canUndo
+                ) {
+                  undoChange()
+                }
+                .graphicsLayer {
+                  alpha = if (canvasState.canUndo) 1f else 0.3f
+                },
+              painter = painterResource(R.drawable.undo),
+              tint = Color.White,
+              contentDescription = null,
+            )
+
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .clickable(
+                  enabled = canvasState.canRedo
+                ) {
+                  redoChange()
+                }
+                .graphicsLayer {
+                  alpha = if (canvasState.canRedo) 1f else 0.3f
+                },
+              painter = painterResource(R.drawable.redo),
+              tint = Color.White,
+              contentDescription = null
+            )
+          },
+          centerControls = {
+            if (canvasState.isPreviewAnimation) return@TopControls
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .clickable { deleteFrame() },
+              painter = painterResource(R.drawable.bin),
+              tint = Color.White,
+              contentDescription = null
+            )
+
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .clickable { addFrame() },
+              painter = painterResource(R.drawable.file_plus),
+              tint = Color.White,
+              contentDescription = null
+            )
+
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .alpha(0.3f),
+              painter = painterResource(R.drawable.layers),
+              tint = Color.White,
+              contentDescription = null
+            )
+          },
+          endControls = {
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .alpha(if (canvasState.isPreviewAnimation) 1f else 0.3f)
+                .clickable(
+                  enabled = canvasState.isPreviewAnimation
+                ) {
+                  stopAnimation()
+                },
+              painter = painterResource(R.drawable.pause),
+              tint = Color.White,
+              contentDescription = null
+            )
+
+            Icon(
+              modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .alpha(if (canvasState.isPreviewAnimation) 0.3f else 1f)
+                .clickable(
+                  enabled = !canvasState.isPreviewAnimation
+                ) {
+                  startAnimation()
+                },
+              painter = painterResource(R.drawable.play),
+              tint = Color.White,
+              contentDescription = null
+            )
+          },
         )
 
         val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
         DrawingCanvas(
           paths = {
-            state.currentFrame.paths
+            canvasState.currentFrame.paths
           },
           currentPath = {
-            state.currentFrame.currentPath
+            canvasState.currentFrame.currentPath
           },
           previousPaths = {
-            state.previousFrame?.paths
+            if (canvasState.isPreviewAnimation) return@DrawingCanvas null
+            canvasState.previousFrame?.paths
           },
           modifier = Modifier
             .weight(1f)
@@ -138,20 +240,22 @@ fun CanvasScreen(
           }
         )
 
-        BottomControls(
-          canvasState = state,
-          modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-          onEraseClick = remember { ::onEraseClick },
-          onPencilClick = remember { ::onPencilClick },
-          onChangeColor = remember { ::changeColor },
-        )
+        if (!canvasState.isPreviewAnimation) {
+          BottomControls(
+            canvasState = canvasState,
+            modifier = Modifier
+              .fillMaxWidth()
+              .navigationBarsPadding()
+              .padding(horizontal = 16.dp)
+              .padding(bottom = 16.dp),
+            onEraseClick = remember { ::onEraseClick },
+            onPencilClick = remember { ::onPencilClick },
+            onChangeColor = remember { ::changeColor },
+          )
+        }
       }
 
-      if (state.colorPickerVisible) {
+      if (canvasState.colorPickerVisible) {
         ColorsPicker(
           modifier = Modifier
             .padding(horizontal = 48.dp)

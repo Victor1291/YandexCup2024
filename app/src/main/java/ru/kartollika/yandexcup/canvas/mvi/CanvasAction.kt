@@ -26,4 +26,7 @@ sealed interface CanvasAction : MVIAction {
   data object RedoChange : CanvasAction
   data object AddNewFrame : CanvasAction
   data object DeleteFrame : CanvasAction
+  data object StartAnimation : CanvasAction
+  data object StopAnimation : CanvasAction
+  data class ChangeCurrentFrame(val frameIndex: Int) : CanvasAction
 }

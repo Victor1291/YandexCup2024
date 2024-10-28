@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
-import ru.kartollika.yandexcup.canvas.CanvasScreen
+import ru.kartollika.yandexcup.canvas.compose.CanvasScreen
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @AndroidEntryPoint

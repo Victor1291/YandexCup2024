@@ -15,6 +15,7 @@ data class CanvasState(
   val color: Color = Color.Blue,
   val colorPickerVisible: Boolean = false,
   val currentFrameIndex: Int = 0,
+  val isPreviewAnimation: Boolean = false,
 ) : MVIState {
 
   val canUndo: Boolean

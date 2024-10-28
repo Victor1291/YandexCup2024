@@ -5,8 +5,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
@@ -15,6 +19,8 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
@@ -22,6 +28,7 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
 
@@ -43,7 +50,7 @@ class CanvasFeature @Inject constructor(
           consumeAction(UpdateOffset(newOffset))
         }
       }
-
+      is StartAnimation -> startFramesAnimation()
       is DrawFinish -> Unit
       is DrawStart -> Unit
       is UpdateOffset -> Unit
@@ -53,8 +60,21 @@ class CanvasFeature @Inject constructor(
       is UndoChange -> Unit
       is RedoChange -> Unit
       is OnColorChanged -> Unit
-      AddNewFrame -> Unit
-      DeleteFrame -> Unit
+      is AddNewFrame -> Unit
+      is DeleteFrame -> Unit
+      is StopAnimation -> Unit
+      is ChangeCurrentFrame -> Unit
+    }
+  }
+
+  private suspend fun startFramesAnimation() = coroutineScope {
+    launch {
+      var frameIndex = 0
+      while (state.value.isPreviewAnimation) {
+        consumeAction(ChangeCurrentFrame(frameIndex))
+        delay(200.milliseconds)
+        frameIndex = (frameIndex + 1) % state.value.frames.size
+      }
     }
   }
 
@@ -191,6 +211,7 @@ class CanvasFeature @Inject constructor(
           currentFrameIndex = state.frames.lastIndex + 1
         )
       }
+
       DeleteFrame -> {
         return if (state.frames.size == 1) {
           state.copy(
@@ -206,6 +227,19 @@ class CanvasFeature @Inject constructor(
           )
         }
       }
+
+      StartAnimation -> state.copy(
+        isPreviewAnimation = true
+      )
+
+      StopAnimation -> state.copy(
+        isPreviewAnimation = false,
+        currentFrameIndex = state.frames.lastIndex
+      )
+
+      is ChangeCurrentFrame -> state.copy(
+        currentFrameIndex = action.frameIndex
+      )
     }
   }
 }
