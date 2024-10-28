@@ -76,6 +76,14 @@ fun CanvasScreen(
     actionConsumer.consumeAction(CanvasAction.OnColorChanged(color))
   }
 
+  fun addFrame() {
+    actionConsumer.consumeAction(CanvasAction.AddNewFrame)
+  }
+
+  fun deleteFrame() {
+    actionConsumer.consumeAction(CanvasAction.DeleteFrame)
+  }
+
   Surface(
     modifier = modifier,
   ) {
@@ -93,15 +101,20 @@ fun CanvasScreen(
             .statusBarsPadding(),
           undoChange = remember { ::undoChange },
           redoChange = remember { ::redoChange },
+          addFrame = remember { ::addFrame },
+          deleteFrame = remember { ::deleteFrame },
         )
 
         val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
         DrawingCanvas(
           paths = {
-            state.paths
+            state.currentFrame.paths
           },
           currentPath = {
-            state.currentPath
+            state.currentFrame.currentPath
+          },
+          previousPaths = {
+            state.previousFrame?.paths
           },
           modifier = Modifier
             .weight(1f)

@@ -14,12 +14,14 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 
 @Composable
 fun DrawingCanvas(
-  paths: () -> List<PathWithProperties>,
+  paths: () -> ImmutableList<PathWithProperties>,
   currentPath: () -> PathWithProperties?,
+  previousPaths: () -> ImmutableList<PathWithProperties>?,
   modifier: Modifier = Modifier,
   onDragStart: (Offset) -> Unit = {},
   onDragEnd: () -> Unit = {},
@@ -42,6 +44,19 @@ fun DrawingCanvas(
   ) {
     with(drawContext.canvas.nativeCanvas) {
       val checkPoint = saveLayer(null, null)
+      previousPaths()?.forEach { pathWithProperties ->
+        drawPath(
+          path = pathWithProperties.path,
+          color = pathWithProperties.properties.color.copy(alpha = 0.3f),
+          style = Stroke(
+            width = 4.dp.toPx(),
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round
+          ),
+          blendMode = resolveBlendMode(pathWithProperties.properties.eraseMode)
+        )
+      }
+
       paths().forEach { pathWithProperties ->
         drawPath(
           path = pathWithProperties.path,

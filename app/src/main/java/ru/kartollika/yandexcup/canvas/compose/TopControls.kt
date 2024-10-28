@@ -23,6 +23,8 @@ fun TopControls(
   modifier: Modifier = Modifier,
   undoChange: () -> Unit = {},
   redoChange: () -> Unit = {},
+  addFrame: () -> Unit = {},
+  deleteFrame: () -> Unit = {},
 ) {
   Row(
     modifier = modifier,
@@ -72,7 +74,8 @@ fun TopControls(
       Icon(
         modifier = Modifier
           .size(32.dp)
-          .alpha(0.3f),
+          .clip(CircleShape)
+          .clickable { deleteFrame() },
         painter = painterResource(R.drawable.bin),
         tint = Color.White,
         contentDescription = null
@@ -81,7 +84,8 @@ fun TopControls(
       Icon(
         modifier = Modifier
           .size(32.dp)
-          .alpha(0.3f),
+          .clip(CircleShape)
+          .clickable { addFrame() },
         painter = painterResource(R.drawable.file_plus),
         tint = Color.White,
         contentDescription = null

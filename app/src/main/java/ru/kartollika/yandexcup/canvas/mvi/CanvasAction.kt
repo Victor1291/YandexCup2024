@@ -24,4 +24,6 @@ sealed interface CanvasAction : MVIAction {
   data class OnColorChanged(val color: Color) : CanvasAction
   data object UndoChange : CanvasAction
   data object RedoChange : CanvasAction
+  data object AddNewFrame : CanvasAction
+  data object DeleteFrame : CanvasAction
 }
