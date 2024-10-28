@@ -10,14 +10,19 @@ import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
 data class CanvasState(
-  val canUndo: Boolean = false,
-  val canRedo: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
   val color: Color = Color.Blue,
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
   val currentPath: PathWithProperties? = null,
   val lastOffset: Offset = Offset.Unspecified,
-) : MVIState
+  val undoPaths: ImmutableList<PathWithProperties> = persistentListOf()
+) : MVIState {
+  val canUndo: Boolean
+    get() = paths.isNotEmpty()
+
+  val canRedo: Boolean
+    get() = undoPaths.isNotEmpty()
+}
 
 @Immutable
 data class PathWithProperties(

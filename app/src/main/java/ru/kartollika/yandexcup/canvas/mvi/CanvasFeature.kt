@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.Path
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
@@ -11,6 +12,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
@@ -44,6 +46,7 @@ class CanvasFeature @Inject constructor(
       is ChangeColor -> Unit
       is PencilClick -> Unit
       is UndoChange -> Unit
+      is RedoChange -> Unit
     }
   }
 
@@ -81,7 +84,7 @@ class CanvasFeature @Inject constructor(
         state.copy(
           paths = paths,
           currentPath = null,
-          canUndo = paths.isNotEmpty()
+          undoPaths = persistentListOf()
         )
       }
 
@@ -98,13 +101,36 @@ class CanvasFeature @Inject constructor(
       )
 
       UndoChange -> {
+        val undoPath: PathWithProperties
+
         val paths = state.paths.toMutableList().apply {
-          removeAt(state.paths.lastIndex)
+          undoPath = removeLast()
+        }.toImmutableList()
+
+        val undoPaths = state.undoPaths.toMutableList().apply {
+          add(undoPath)
         }.toImmutableList()
 
         state.copy(
           paths = paths,
-          canUndo = paths.isNotEmpty()
+          undoPaths = undoPaths,
+        )
+      }
+
+      RedoChange -> {
+        val redoPath = state.undoPaths.lastOrNull() ?: return state
+
+        val paths = state.paths.toMutableList().apply {
+          add(redoPath)
+        }.toImmutableList()
+
+        val undoPaths = state.undoPaths.toMutableList().apply {
+          removeLast()
+        }.toImmutableList()
+
+        state.copy(
+          paths = paths,
+          undoPaths = undoPaths,
         )
       }
     }

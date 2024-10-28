@@ -61,6 +61,10 @@ fun CanvasScreen(
     actionConsumer.consumeAction(CanvasAction.UndoChange)
   }
 
+  fun redoChange() {
+    actionConsumer.consumeAction(CanvasAction.RedoChange)
+  }
+
   Surface(
     modifier = modifier,
   ) {
@@ -75,7 +79,8 @@ fun CanvasScreen(
           .padding(top = 16.dp)
           .padding(horizontal = 16.dp)
           .statusBarsPadding(),
-        undoChange = remember { ::undoChange }
+        undoChange = remember { ::undoChange },
+        redoChange = remember { ::redoChange },
       )
 
       val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
