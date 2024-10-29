@@ -53,6 +53,7 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.canvas.openBrushPicker
 import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
+import ru.kartollika.yandexcup.canvas.updateEditorConfig
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
@@ -80,8 +81,6 @@ class CanvasFeature @Inject constructor(
       }
 
       is StartAnimation -> {
-        consumeAction(HideColorPicker)
-        consumeAction(HideBrushSizePicker)
         startFramesAnimation()
       }
 
@@ -230,10 +229,8 @@ class CanvasFeature @Inject constructor(
         )
       }
 
-      EraseClick -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          currentMode = Erase
-        ),
+      EraseClick -> state.updateEditorConfig(
+        currentMode = Erase
       )
 
       is OnColorClick -> if (state.editorConfiguration.colorPickerVisible) {
@@ -242,10 +239,8 @@ class CanvasFeature @Inject constructor(
         state.openColorPicker()
       }
 
-      PencilClick -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          currentMode = Pencil
-        )
+      PencilClick -> state.updateEditorConfig(
+        currentMode = Pencil
       )
 
       UndoChange -> {
@@ -273,20 +268,18 @@ class CanvasFeature @Inject constructor(
         )
       }
 
-      is OnColorChanged -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          color = action.color,
-        )
+      is OnColorChanged -> state.updateEditorConfig(
+        color = action.color,
       )
 
       AddNewFrame -> state.addNewFrame()
       is DeleteFrame -> state.deleteFrame(action.frameIndex)
 
-      StartAnimation -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
+      StartAnimation -> {
+        state.updateEditorConfig(
           isPreviewAnimation = true
-        )
-      )
+        ).hidePickers()
+      }
 
       StopAnimation -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
@@ -299,10 +292,8 @@ class CanvasFeature @Inject constructor(
         currentFrameIndex = action.frameIndex
       )
 
-      is AnimationDelayChange -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          animationDelay = action.animationDelay.roundToInt()
-        )
+      is AnimationDelayChange -> state.updateEditorConfig(
+        animationDelay = action.animationDelay.roundToInt()
       )
 
       CopyFrame -> state.copyFrame()
@@ -326,8 +317,22 @@ class CanvasFeature @Inject constructor(
       )
 
       is ShowColorPicker -> state.openColorPicker()
-      is ShowBrushSizePicker -> state.openBrushPicker()
-      is OpenShapes -> state.openShapesPicker()
+      is ShowBrushSizePicker -> {
+        if (state.editorConfiguration.brushSizePickerVisible) {
+          state.hidePickers()
+        } else {
+          state.openBrushPicker()
+        }
+      }
+
+      is OpenShapes -> {
+        if (state.editorConfiguration.shapesPickerVisible) {
+          state.hidePickers()
+        } else {
+          state.openShapesPicker()
+        }
+      }
+
       is HideColorPicker -> state.hidePickers()
       HideBrushSizePicker -> state.hidePickers()
 
@@ -337,16 +342,12 @@ class CanvasFeature @Inject constructor(
         )
       )
 
-      CustomColorClick -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
-        )
+      CustomColorClick -> state.updateEditorConfig(
+        colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
       )
 
-      is OnColorItemClicked -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          color = action.color
-        )
+      is OnColorItemClicked -> state.updateEditorConfig(
+        color = action.color
       )
 
       is SelectShape -> state

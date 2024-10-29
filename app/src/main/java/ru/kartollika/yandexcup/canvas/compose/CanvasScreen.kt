@@ -1,5 +1,6 @@
 package ru.kartollika.yandexcup.canvas.compose
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -235,6 +236,14 @@ private fun CanvasScreen(
   onShapeClick: () -> Unit = {},
   selectShape: (Shape) -> Unit = {},
 ) {
+  BackHandlers(
+    canvasState = canvasState,
+    stopAnimation = stopAnimation,
+    onColorClick = onColorClick,
+    onBrushSizeClick = onBrushSizeClick,
+    onShapeClick = onShapeClick
+  )
+
   Surface(
     modifier = modifier,
   ) {
@@ -289,6 +298,57 @@ private fun CanvasScreen(
         }
       }
     }
+  }
+}
+
+@Composable
+private fun BackHandlers(
+  canvasState: CanvasState,
+  stopAnimation: () -> Unit,
+  onColorClick: () -> Unit,
+  onBrushSizeClick: () -> Unit,
+  onShapeClick: () -> Unit,
+) {
+  BackHandler(
+    enabled = canvasState.editorConfiguration.isPreviewAnimation
+  ) {
+    stopAnimation()
+  }
+
+  PickersBackHandlers(
+    canvasState = canvasState,
+    onColorClick = onColorClick,
+    onBrushSizeClick = onBrushSizeClick,
+    onShapeClick = onShapeClick
+  )
+}
+
+@Composable
+private fun PickersBackHandlers(
+  canvasState: CanvasState,
+  onColorClick: () -> Unit,
+  onBrushSizeClick: () -> Unit,
+  onShapeClick: () -> Unit,
+) {
+  BackHandler(
+    enabled = canvasState.editorConfiguration.colorPickerVisible
+  ) {
+    // TODO заменить на hideColorPicker
+    onColorClick()
+  }
+
+  BackHandler(
+    enabled = canvasState.editorConfiguration.brushSizePickerVisible
+  ) {
+    // TODO заменить на hideBrushSizePicker
+    onBrushSizeClick()
+  }
+
+  BackHandler(
+    enabled = canvasState.editorConfiguration.shapesPickerVisible
+  ) {
+    // TODO заменить на hideShapePicker
+    onShapeClick()
   }
 }
 
