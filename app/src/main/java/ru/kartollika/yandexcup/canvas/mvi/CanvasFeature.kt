@@ -22,6 +22,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
@@ -65,6 +66,7 @@ class CanvasFeature @Inject constructor(
 
       is StartAnimation -> {
         consumeAction(HideColorPicker)
+        consumeAction(HideBrushSizePicker)
         startFramesAnimation()
       }
       is DrawFinish -> Unit
@@ -75,7 +77,9 @@ class CanvasFeature @Inject constructor(
       is EraseClick -> {
         consumeAction(HideColorPicker)
       }
-      is ChangeColor -> Unit
+      is ChangeColor -> {
+        consumeAction(HideBrushSizePicker)
+      }
       is PencilClick -> {
         consumeAction(HideColorPicker)
       }
@@ -93,8 +97,11 @@ class CanvasFeature @Inject constructor(
       is SelectFrame -> Unit
       is DeleteAllFrames -> Unit
       is HideColorPicker -> Unit
-      ShowBrushSizePicker -> Unit
+      ShowBrushSizePicker -> {
+        consumeAction(HideColorPicker)
+      }
       is ChangeBrushSize -> Unit
+      HideBrushSizePicker -> Unit
     }
   }
 
@@ -346,6 +353,12 @@ class CanvasFeature @Inject constructor(
       is ChangeBrushSize -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           brushSize = action.size
+        )
+      )
+
+      HideBrushSizePicker -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          brushSizePickerVisible = false
         )
       )
     }

@@ -38,5 +38,6 @@ sealed interface CanvasAction : MVIAction {
   data object DeleteAllFrames : CanvasAction
   data object HideColorPicker : CanvasAction
   data object ShowBrushSizePicker : CanvasAction
+  data object HideBrushSizePicker : CanvasAction
   data class ChangeBrushSize(val size: Float) : CanvasAction
 }
