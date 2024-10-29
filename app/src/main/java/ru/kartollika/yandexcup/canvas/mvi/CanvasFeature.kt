@@ -111,7 +111,9 @@ class CanvasFeature @Inject constructor(
       is ChangeBrushSize -> Unit
       HideBrushSizePicker -> Unit
       CustomColorClick -> Unit
-      ShowColorPicker -> Unit
+      ShowColorPicker -> {
+        consumeAction(HideBrushSizePicker)
+      }
       is OnColorItemClicked -> {
         consumeAction(HideColorPicker)
       }
