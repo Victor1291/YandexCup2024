@@ -16,7 +16,7 @@ fun CanvasState.copyFrame() = copy(
   frames = mutateFrames {
     add(
       currentFrame.copy(
-        undoPaths = persistentListOf()
+        snapshots = persistentListOf(),
       )
     )
   },

@@ -1,11 +1,13 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
@@ -17,10 +19,10 @@ data class CanvasState(
 ) : MVIState {
 
   val canUndo: Boolean
-    get() = currentFrame.paths.isNotEmpty()
+    get() = currentFrame.historyIndex > 0
 
   val canRedo: Boolean
-    get() = currentFrame.undoPaths.isNotEmpty()
+    get() = currentFrame.historyIndex < currentFrame.snapshots.lastIndex
 
   val currentFrame: Frame
     get() = frames[currentFrameIndex]
@@ -53,12 +55,45 @@ sealed interface DrawMode {
 
 typealias Frames = ImmutableList<Frame>
 
-@Immutable
+@Stable
 data class Frame(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
   val currentPath: PathWithProperties? = null,
   val lastOffset: Offset = Offset.Unspecified,
-  val undoPaths: ImmutableList<PathWithProperties> = persistentListOf(),
+  val historyIndex: Int = 0,
+  val snapshots: ImmutableList<FrameSnapshot> = persistentListOf(FrameSnapshot()),
+) {
+  val previousSnapshot: FrameSnapshot?
+    get() = snapshots.getOrNull(historyIndex - 1)
+
+  val nextSnapshot: FrameSnapshot?
+    get() = snapshots.getOrNull(historyIndex + 1)
+}
+
+fun Frame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
+  paths = snapshot.paths,
+  historyIndex = snapshot.snapshotIndex
+)
+
+fun ImmutableList<FrameSnapshot>.dropSnapshotsStartingFrom(index: Int): ImmutableList<FrameSnapshot> {
+  return subList(0, index)
+}
+
+fun ImmutableList<FrameSnapshot>.pushSnapshot(frame: Frame): ImmutableList<FrameSnapshot> {
+  return toMutableList().apply {
+    add(
+      FrameSnapshot(
+        paths = frame.paths,
+        snapshotIndex = frame.historyIndex + 1
+      )
+    )
+  }.toImmutableList()
+}
+
+@Immutable
+data class FrameSnapshot(
+  val paths: ImmutableList<PathWithProperties> = persistentListOf(),
+  val snapshotIndex: Int = 0,
 )
 
 @Immutable

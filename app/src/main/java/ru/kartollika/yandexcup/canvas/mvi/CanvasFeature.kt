@@ -60,7 +60,6 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
-
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
   override fun initialState(): CanvasState = CanvasState()
 
@@ -215,10 +214,16 @@ class CanvasFeature @Inject constructor(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame ->
-              frame.copy(
+              val newFrame = frame.copy(
                 paths = paths,
                 currentPath = null,
-                undoPaths = persistentListOf()
+              )
+
+              newFrame.copy(
+                historyIndex = frame.historyIndex + 1,
+                snapshots = frame.snapshots
+                  .dropSnapshotsStartingFrom(frame.historyIndex + 1)
+                  .pushSnapshot(newFrame),
               )
             }
           ).toImmutableList(),
@@ -244,48 +249,25 @@ class CanvasFeature @Inject constructor(
       )
 
       UndoChange -> {
-        val undoPath: PathWithProperties
-
-        val paths = state.currentFrame.paths.toMutableList().apply {
-          undoPath = removeLast()
-        }.toImmutableList()
-
-        val undoPaths = state.currentFrame.undoPaths.toMutableList().apply {
-          add(undoPath)
-        }.toImmutableList()
-
+        val previousSnapshot = state.currentFrame.previousSnapshot ?: return state
         state.copy(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame ->
-              frame.copy(
-                paths = paths,
-                undoPaths = undoPaths,
-              )
+              frame.restoreSnapshot(previousSnapshot)
             }
           ).toImmutableList(),
         )
       }
 
       RedoChange -> {
-        val redoPath = state.currentFrame.undoPaths.lastOrNull() ?: return state
-
-        val paths = state.currentFrame.paths.toMutableList().apply {
-          add(redoPath)
-        }.toImmutableList()
-
-        val undoPaths = state.currentFrame.undoPaths.toMutableList().apply {
-          removeLast()
-        }.toImmutableList()
+        val nextSnapshot = state.currentFrame.nextSnapshot ?: return state
 
         state.copy(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame ->
-              frame.copy(
-                paths = paths,
-                undoPaths = undoPaths,
-              )
+              frame.restoreSnapshot(nextSnapshot)
             }
           ).toImmutableList(),
         )
