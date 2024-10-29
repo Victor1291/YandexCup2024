@@ -39,6 +39,7 @@ data class PathWithProperties(
 data class PathProperties(
   val color: Color,
   val eraseMode: Boolean = false,
+  val brushSize: Float,
 )
 
 @Immutable
@@ -65,6 +66,8 @@ data class EditorConfiguration(
   val isPreviewAnimation: Boolean = false,
   val color: Color = Color.Blue,
   val colorPickerVisible: Boolean = false,
+  val brushSizePickerVisible: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
-  val animationDelay: Int = 200
+  val animationDelay: Int = 200,
+  val brushSize: Float = 4f
 )

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -142,6 +142,14 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.DeleteAllFrames)
   }
 
+  fun onBrushSizeClick() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.ShowBrushSizePicker)
+  }
+
+  fun changeBrushSize(size: Float) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.ChangeBrushSize(size))
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -163,7 +171,9 @@ fun CanvasScreen(
     showFrames = remember { ::showFrames },
     hideFrames = remember { ::hideFrames },
     selectFrame = remember { ::selectFrame },
-    deleteAllFrames = remember { ::deleteAllFrames }
+    deleteAllFrames = remember { ::deleteAllFrames },
+    onBrushSizeClick = remember { ::onBrushSizeClick },
+    changeBrushSize = remember { ::changeBrushSize },
   )
 }
 
@@ -191,6 +201,8 @@ private fun CanvasScreen(
   hideFrames: () -> Unit = {},
   selectFrame: (Int) -> Unit = {},
   deleteAllFrames: () -> Unit = {},
+  onBrushSizeClick: () -> Unit = {},
+  changeBrushSize: (Float) -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
@@ -304,7 +316,8 @@ private fun CanvasScreen(
             editorConfiguration = canvasState.editorConfiguration,
             onPencilClick = onPencilClick,
             onEraseClick = onEraseClick,
-            onColorClick = onColorClick
+            onColorClick = onColorClick,
+            onBrushSizeClick = onBrushSizeClick
           )
         }
       }
@@ -336,6 +349,21 @@ private fun CanvasScreen(
             }
           )
         },
+      )
+    }
+
+    if (canvasState.editorConfiguration.brushSizePickerVisible) {
+      BrushSizePicker(
+        modifier = Modifier
+          .padding(bottom = 100.dp)
+          .navigationBarsPadding()
+          .align(Alignment.BottomCenter)
+          .background(Color.Gray, RoundedCornerShape(4.dp))
+          .padding(horizontal = 16.dp)
+          .height(50.dp)
+          .width(200.dp),
+        editorConfiguration = canvasState.editorConfiguration,
+        changeBrushSize = changeBrushSize
       )
     }
   }

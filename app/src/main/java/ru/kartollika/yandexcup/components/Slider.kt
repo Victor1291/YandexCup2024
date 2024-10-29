@@ -2,13 +2,8 @@ package ru.kartollika.yandexcup.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.IntrinsicSize.Max
-import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,10 +15,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ContentScale.Companion
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,11 +35,11 @@ fun Slider(
   thumb: @Composable (SliderState) -> Unit = {
     Spacer(
       modifier = Modifier
-        .fillMaxHeight()
-        .aspectRatio(1f)
+        .size(24.dp)
         .background(Color.White, CircleShape)
     )
-  }
+  },
+  invertTrack: Boolean = false,
 ) {
   androidx.compose.material3.Slider(
     value = value,
@@ -57,7 +50,8 @@ fun Slider(
     track = {
       Image(
         modifier = Modifier
-          .fillMaxWidth(),
+          .fillMaxWidth()
+          .rotate(if (invertTrack) 180f else 0f),
         contentScale = Companion.FillBounds,
         painter = painterResource(R.drawable.track),
         contentDescription = null

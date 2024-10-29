@@ -12,8 +12,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
-import androidx.core.graphics.scaleMatrix
 import kotlinx.collections.immutable.ImmutableList
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 
@@ -51,7 +49,7 @@ fun DrawingCanvas(
             path = pathWithProperties.path,
             color = pathWithProperties.properties.color.copy(alpha = 0.3f),
             style = Stroke(
-              width = 4.dp.toPx(),
+              width = pathWithProperties.properties.brushSize,
               cap = StrokeCap.Round,
               join = StrokeJoin.Round
             ),
@@ -70,7 +68,7 @@ fun DrawingCanvas(
             path = pathWithProperties.path,
             color = pathWithProperties.properties.color,
             style = Stroke(
-              width = 4.dp.toPx(),
+              width = pathWithProperties.properties.brushSize,
               cap = StrokeCap.Round,
               join = StrokeJoin.Round
             ),
@@ -83,7 +81,7 @@ fun DrawingCanvas(
             path = pathWithProperties.path,
             color = pathWithProperties.properties.color,
             style = Stroke(
-              width = 4.dp.toPx(),
+              width = pathWithProperties.properties.brushSize,
               cap = StrokeCap.Round,
               join = StrokeJoin.Round
             ),

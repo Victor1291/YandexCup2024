@@ -3,6 +3,7 @@ package ru.kartollika.yandexcup.canvas.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -34,6 +36,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
     centerSpacedBy = 16.dp,
     startControls = {
       BrushSizeControl(
+        editorConfiguration = editorConfiguration,
         onBrushSizeClick = onBrushSizeClick
       )
     },
@@ -49,19 +52,28 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 }
 
 @Composable fun BrushSizeControl(
+  editorConfiguration: EditorConfiguration,
   onBrushSizeClick: () -> Unit,
 ) {
-  Icon(
-    modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable {
-        onBrushSizeClick()
-      },
-    painter = painterResource(R.drawable.circle),
-    tint = Color.White,
-    contentDescription = null,
-  )
+  Box(
+    contentAlignment = Alignment.Center
+  ) {
+    Spacer(
+      modifier = Modifier
+        .size(32.dp)
+        .clip(CircleShape)
+        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+        .clickable {
+          onBrushSizeClick()
+        }
+    )
+
+    Spacer(
+      modifier = Modifier
+        .size(editorConfiguration.brushSize.dp * 0.75f)
+        .background(Color.White, CircleShape)
+    )
+  }
 }
 
 @Composable

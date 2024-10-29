@@ -8,11 +8,11 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
 import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
@@ -28,6 +28,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.SelectFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
@@ -92,6 +93,8 @@ class CanvasFeature @Inject constructor(
       is SelectFrame -> Unit
       is DeleteAllFrames -> Unit
       is HideColorPicker -> Unit
+      ShowBrushSizePicker -> Unit
+      is ChangeBrushSize -> Unit
     }
   }
 
@@ -118,7 +121,8 @@ class CanvasFeature @Inject constructor(
           } else {
             state.editorConfiguration.color
           },
-          eraseMode = state.editorConfiguration.currentMode == Erase
+          eraseMode = state.editorConfiguration.currentMode == Erase,
+          brushSize = state.editorConfiguration.brushSize
         )
 
         path.moveTo(action.offset.x, action.offset.y)
@@ -330,6 +334,18 @@ class CanvasFeature @Inject constructor(
       is HideColorPicker -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           colorPickerVisible = false
+        )
+      )
+
+      ShowBrushSizePicker -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          brushSizePickerVisible = !state.editorConfiguration.brushSizePickerVisible
+        )
+      )
+
+      is ChangeBrushSize -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          brushSize = action.size
         )
       )
     }
