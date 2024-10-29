@@ -103,7 +103,8 @@ fun FrameItem(
         .height(100.dp)
         .width(60.dp)
         .background(Color.White),
-      scale = 0.18f
+      // TODO Вычислить программно этот скейл
+      scale = 0.16f
     )
 
     Text(
