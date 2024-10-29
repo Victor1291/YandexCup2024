@@ -62,7 +62,15 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
       modifier = Modifier
         .size(32.dp)
         .clip(CircleShape)
-        .border(width = 2.dp, color = Color.White, shape = CircleShape)
+        .border(
+          width = 2.dp,
+          color = if (editorConfiguration.brushSizePickerVisible) {
+            MaterialTheme.colorScheme.primary
+          } else {
+            Color.White
+          },
+          shape = CircleShape
+        )
         .clickable {
           onBrushSizeClick()
         }

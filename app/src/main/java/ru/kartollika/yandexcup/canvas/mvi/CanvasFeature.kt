@@ -377,7 +377,7 @@ class CanvasFeature @Inject constructor(
 
       CustomColorClick -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
-          colorPickerExpanded = true
+          colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
         )
       )
 
