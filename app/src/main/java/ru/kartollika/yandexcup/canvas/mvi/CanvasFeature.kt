@@ -9,12 +9,14 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ru.kartollika.yandexcup.canvas.FrameIndex.Current
-import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
 import ru.kartollika.yandexcup.canvas.Shape.Triangle
+import ru.kartollika.yandexcup.canvas.addNewFrame
+import ru.kartollika.yandexcup.canvas.copyFrame
+import ru.kartollika.yandexcup.canvas.deleteFrame
+import ru.kartollika.yandexcup.canvas.hidePickers
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
@@ -48,6 +50,9 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
+import ru.kartollika.yandexcup.canvas.openBrushPicker
+import ru.kartollika.yandexcup.canvas.openColorPicker
+import ru.kartollika.yandexcup.canvas.openShapesPicker
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
@@ -91,15 +96,7 @@ class CanvasFeature @Inject constructor(
         consumeAction(HideColorPicker)
       }
 
-      is OnColorClick -> {
-        consumeAction(HideBrushSizePicker)
-        if (state.editorConfiguration.colorPickerVisible) {
-          consumeAction(HideColorPicker)
-        } else {
-          consumeAction(ShowColorPicker)
-        }
-      }
-
+      is OnColorClick -> Unit
       is PencilClick -> {
         consumeAction(HideColorPicker)
       }
@@ -118,16 +115,11 @@ class CanvasFeature @Inject constructor(
       is SelectFrame -> Unit
       is DeleteAllFrames -> Unit
       is HideColorPicker -> Unit
-      ShowBrushSizePicker -> {
-        consumeAction(HideColorPicker)
-      }
-
+      ShowBrushSizePicker -> Unit
       is ChangeBrushSize -> Unit
       HideBrushSizePicker -> Unit
       CustomColorClick -> Unit
-      ShowColorPicker -> {
-        consumeAction(HideBrushSizePicker)
-      }
+      ShowColorPicker -> Unit
 
       is OnColorItemClicked -> {
         consumeAction(HideColorPicker)
@@ -239,12 +231,11 @@ class CanvasFeature @Inject constructor(
         ),
       )
 
-      is OnColorClick -> state
-      is ShowColorPicker -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          colorPickerVisible = !state.editorConfiguration.colorPickerVisible,
-        )
-      )
+      is OnColorClick -> if (state.editorConfiguration.colorPickerVisible) {
+        state.hidePickers()
+      } else {
+        state.openColorPicker()
+      }
 
       PencilClick -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
@@ -306,35 +297,8 @@ class CanvasFeature @Inject constructor(
         )
       )
 
-      AddNewFrame -> {
-        val newFrame = Frame()
-        state.copy(
-          frames = state.frames.toMutableList().apply {
-            add(newFrame)
-          }.toImmutableList(),
-          currentFrameIndex = state.frames.lastIndex + 1
-        )
-      }
-
-      is DeleteFrame -> {
-        return if (state.frames.size == 1) {
-          state.copy(
-            frames = persistentListOf(Frame()),
-            currentFrameIndex = 0
-          )
-        } else {
-          val indexToRemove = when (val frameIndex = action.frameIndex) {
-            is Current -> state.currentFrameIndex
-            is Index -> frameIndex.index
-          }
-          state.copy(
-            frames = state.frames.toMutableList().apply {
-              removeAt(indexToRemove)
-            }.toImmutableList(),
-            currentFrameIndex = state.frames.lastIndex - 1
-          )
-        }
-      }
+      AddNewFrame -> state.addNewFrame()
+      is DeleteFrame -> state.deleteFrame(action.frameIndex)
 
       StartAnimation -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
@@ -359,16 +323,7 @@ class CanvasFeature @Inject constructor(
         )
       )
 
-      CopyFrame -> state.copy(
-        frames = state.frames.toMutableList().apply {
-          add(
-            state.currentFrame.copy(
-              undoPaths = persistentListOf()
-            )
-          )
-        }.toImmutableList(),
-        currentFrameIndex = state.frames.lastIndex + 1
-      )
+      CopyFrame -> state.copyFrame()
 
       ShowFrames -> state.copy(
         framesSheetVisible = true
@@ -388,28 +343,15 @@ class CanvasFeature @Inject constructor(
         currentFrameIndex = 0
       )
 
-      is HideColorPicker -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          colorPickerVisible = false,
-          colorPickerExpanded = false
-        )
-      )
-
-      ShowBrushSizePicker -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          brushSizePickerVisible = !state.editorConfiguration.brushSizePickerVisible
-        )
-      )
+      is ShowColorPicker -> state.openColorPicker()
+      is ShowBrushSizePicker -> state.openBrushPicker()
+      is OpenShapes -> state.openShapesPicker()
+      is HideColorPicker -> state.hidePickers()
+      HideBrushSizePicker -> state.hidePickers()
 
       is ChangeBrushSize -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           brushSize = action.size
-        )
-      )
-
-      HideBrushSizePicker -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          brushSizePickerVisible = false
         )
       )
 
@@ -422,12 +364,6 @@ class CanvasFeature @Inject constructor(
       is OnColorItemClicked -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           color = action.color
-        )
-      )
-
-      OpenShapes -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          shapesPickerVisible = !state.editorConfiguration.shapesPickerVisible
         )
       )
 
