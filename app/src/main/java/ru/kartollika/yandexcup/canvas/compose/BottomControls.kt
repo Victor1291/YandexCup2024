@@ -27,10 +27,16 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   onPencilClick: () -> Unit = {},
   onEraseClick: () -> Unit = {},
   onColorClick: () -> Unit = {},
+  onBrushSizeClick: () -> Unit = {},
 ) {
   Controls(
     modifier = modifier,
     centerSpacedBy = 16.dp,
+    startControls = {
+      BrushSizeControl(
+        onBrushSizeClick = onBrushSizeClick
+      )
+    },
     centerControls = {
       EditorButtons(
         onPencilClick = onPencilClick,
@@ -39,6 +45,22 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         onColorClick = onColorClick
       )
     },
+  )
+}
+
+@Composable fun BrushSizeControl(
+  onBrushSizeClick: () -> Unit,
+) {
+  Icon(
+    modifier = Modifier
+      .size(32.dp)
+      .clip(CircleShape)
+      .clickable {
+        onBrushSizeClick()
+      },
+    painter = painterResource(R.drawable.circle),
+    tint = Color.White,
+    contentDescription = null,
   )
 }
 

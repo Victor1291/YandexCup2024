@@ -299,7 +299,8 @@ private fun CanvasScreen(
         } else {
           BottomControls(
             modifier = Modifier
-              .fillMaxSize(),
+              .fillMaxSize()
+              .padding(horizontal = 8.dp),
             editorConfiguration = canvasState.editorConfiguration,
             onPencilClick = onPencilClick,
             onEraseClick = onEraseClick,

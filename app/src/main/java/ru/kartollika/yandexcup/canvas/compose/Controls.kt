@@ -1,9 +1,12 @@
 package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -18,23 +21,25 @@ fun Controls(
   centerSpacedBy: Dp = startSpacedBy,
   endSpacedBy: Dp = startSpacedBy,
 ) {
-  Row(
+  Box(
     modifier = modifier,
-    horizontalArrangement = Arrangement.SpaceBetween,
   ) {
     Row(
+      modifier = Modifier.align(Alignment.CenterStart),
       horizontalArrangement = Arrangement.spacedBy(startSpacedBy)
     ) {
       startControls()
     }
 
     Row(
+      modifier = Modifier.align(Alignment.Center),
       horizontalArrangement = Arrangement.spacedBy(centerSpacedBy)
     ) {
       centerControls()
     }
 
     Row(
+      modifier = Modifier.align(Alignment.CenterEnd),
       horizontalArrangement = Arrangement.spacedBy(endSpacedBy)
     ) {
       endControls()
