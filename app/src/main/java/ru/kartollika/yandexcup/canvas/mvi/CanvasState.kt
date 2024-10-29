@@ -70,5 +70,6 @@ data class EditorConfiguration(
   val brushSizePickerVisible: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
   val animationDelay: Int = 200,
-  val brushSize: Float = 10f
+  val brushSize: Float = 10f,
+  val shapesPickerVisible: Boolean = false,
 )

@@ -1,6 +1,7 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.persistentListOf
@@ -10,6 +11,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
 import ru.kartollika.yandexcup.canvas.FrameIndex.Index
+import ru.kartollika.yandexcup.canvas.Shape
+import ru.kartollika.yandexcup.canvas.Shape.Circle
+import ru.kartollika.yandexcup.canvas.Shape.Square
+import ru.kartollika.yandexcup.canvas.Shape.Triangle
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
@@ -20,6 +25,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawPath
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
@@ -28,9 +34,11 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorItemClicked
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OpenShapes
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.SelectFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.SelectShape
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
@@ -72,14 +80,17 @@ class CanvasFeature @Inject constructor(
         consumeAction(HideBrushSizePicker)
         startFramesAnimation()
       }
+
       is DrawFinish -> Unit
       is DrawStart -> {
         consumeAction(HideColorPicker)
       }
+
       is UpdateOffset -> Unit
       is EraseClick -> {
         consumeAction(HideColorPicker)
       }
+
       is OnColorClick -> {
         consumeAction(HideBrushSizePicker)
         if (state.editorConfiguration.colorPickerVisible) {
@@ -88,9 +99,11 @@ class CanvasFeature @Inject constructor(
           consumeAction(ShowColorPicker)
         }
       }
+
       is PencilClick -> {
         consumeAction(HideColorPicker)
       }
+
       is UndoChange -> Unit
       is RedoChange -> Unit
       is OnColorChanged -> Unit
@@ -108,16 +121,38 @@ class CanvasFeature @Inject constructor(
       ShowBrushSizePicker -> {
         consumeAction(HideColorPicker)
       }
+
       is ChangeBrushSize -> Unit
       HideBrushSizePicker -> Unit
       CustomColorClick -> Unit
       ShowColorPicker -> {
         consumeAction(HideBrushSizePicker)
       }
+
       is OnColorItemClicked -> {
         consumeAction(HideColorPicker)
       }
+
+      OpenShapes -> Unit
+      is SelectShape -> drawShape(action.shape)
+      is DrawPath -> Unit
     }
+  }
+
+  private fun drawShape(shape: Shape) {
+    val path = Path()
+
+    when (shape) {
+      Circle -> path.addOval(Rect(100f, 100f, 400f, 400f))
+      Square -> path.addRect(Rect(100f, 100f, 400f, 400f))
+      Triangle -> {
+        path.moveTo(100f, 100f)
+        path.lineTo(200f, 250f)
+        path.lineTo(0f, 250f)
+        path.lineTo(100f, 100f)
+      }
+    }
+    consumeAction(DrawPath(path))
   }
 
   private suspend fun startFramesAnimation() = coroutineScope {
@@ -203,6 +238,7 @@ class CanvasFeature @Inject constructor(
           currentMode = Erase
         ),
       )
+
       is OnColorClick -> state
       is ShowColorPicker -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
@@ -387,6 +423,37 @@ class CanvasFeature @Inject constructor(
         editorConfiguration = state.editorConfiguration.copy(
           color = action.color
         )
+      )
+
+      OpenShapes -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          shapesPickerVisible = !state.editorConfiguration.shapesPickerVisible
+        )
+      )
+
+      is SelectShape -> state
+      is DrawPath -> state.copy(
+        frames = state.frames.replace(
+          replaceIndex = state.currentFrameIndex,
+          newItem = { frame ->
+            val properties = PathProperties(
+              color = state.editorConfiguration.color,
+              eraseMode = false,
+              brushSize = state.editorConfiguration.brushSize
+            )
+
+            frame.copy(
+              paths = frame.paths.toMutableList().apply {
+                add(
+                  PathWithProperties(
+                    path = action.path,
+                    properties = properties
+                  )
+                )
+              }.toImmutableList()
+            )
+          }
+        ).toImmutableList()
       )
     }
   }

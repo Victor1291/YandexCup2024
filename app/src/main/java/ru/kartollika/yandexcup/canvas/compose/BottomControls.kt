@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -30,6 +29,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   onEraseClick: () -> Unit = {},
   onColorClick: () -> Unit = {},
   onBrushSizeClick: () -> Unit = {},
+  onShapesClick: () -> Unit = {},
 ) {
   Controls(
     modifier = modifier,
@@ -45,7 +45,8 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         onPencilClick = onPencilClick,
         editorConfiguration = editorConfiguration,
         onEraseClick = onEraseClick,
-        onColorClick = onColorClick
+        onColorClick = onColorClick,
+        onShapesClick = onShapesClick
       )
     },
   )
@@ -89,7 +90,8 @@ private fun EditorButtons(
   onPencilClick: () -> Unit,
   editorConfiguration: EditorConfiguration,
   onEraseClick: () -> Unit,
-  onColorClick: () -> Unit
+  onColorClick: () -> Unit,
+  onShapesClick: () -> Unit = {},
 ) {
   Icon(
     modifier = Modifier
@@ -124,7 +126,10 @@ private fun EditorButtons(
   Icon(
     modifier = Modifier
       .size(32.dp)
-      .alpha(0.3f),
+      .clip(CircleShape)
+      .clickable {
+        onShapesClick()
+      },
     painter = painterResource(R.drawable.instruments),
     contentDescription = null,
     tint = Color.White

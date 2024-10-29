@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.Row
@@ -45,6 +46,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.FrameIndex
+import ru.kartollika.yandexcup.canvas.FrameIndex.Current
+import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.canvas.frames.FramesScreen
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
@@ -162,6 +165,14 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.CustomColorClick)
   }
 
+  fun onShapeClick() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.OpenShapes)
+  }
+
+  fun selectShape(shape: Shape) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.SelectShape(shape))
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -187,7 +198,9 @@ fun CanvasScreen(
     deleteAllFrames = remember { ::deleteAllFrames },
     onBrushSizeClick = remember { ::onBrushSizeClick },
     changeBrushSize = remember { ::changeBrushSize },
-    onCustomColorClick = remember { ::onCustomColorClick }
+    onCustomColorClick = remember { ::onCustomColorClick },
+    onShapeClick = remember { ::onShapeClick },
+    selectShape = remember { ::selectShape }
   )
 }
 
@@ -219,175 +232,273 @@ private fun CanvasScreen(
   onBrushSizeClick: () -> Unit = {},
   changeBrushSize: (Float) -> Unit = {},
   onCustomColorClick: () -> Unit = {},
+  onShapeClick: () -> Unit = {},
+  selectShape: (Shape) -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
   ) {
-
-    if (canvasState.framesSheetVisible) {
-      ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(),
-        onDismissRequest = {
-          hideFrames()
-        }
-      ) {
-        FramesScreen(
-          modifier = Modifier.fillMaxWidth(),
-          frames = canvasState.frames,
-          selectFrame = selectFrame,
-          deleteFrame = { index ->
-            deleteFrame(FrameIndex.Index(index))
-          },
-          deleteAllFrames = deleteAllFrames
-        )
-      }
-    }
-  }
-
-  Box {
-    Column(
-      modifier = Modifier.fillMaxSize(),
-      verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      TopControls(
-        editorConfiguration = canvasState.editorConfiguration,
-        modifier = Modifier
-          .statusBarsPadding()
-          .fillMaxWidth()
-          .padding(top = 16.dp)
-          .padding(horizontal = 16.dp),
+    Box {
+      Content(
+        canvasState = canvasState,
         undoChange = undoChange,
         redoChange = redoChange,
-        deleteFrame = {
-          deleteFrame(FrameIndex.Current)
-        },
+        deleteFrame = deleteFrame,
         addFrame = addFrame,
         stopAnimation = stopAnimation,
         startAnimation = startAnimation,
         copyFrame = copyFrame,
-        canUndo = { canvasState.canUndo },
-        canRedo = { canvasState.canRedo },
-        showFrames = showFrames
-      )
-
-      val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
-      Canvas(
-        modifier = modifier
-          .weight(1f)
-          .fillMaxWidth()
-          .padding(16.dp)
-          .clip(RoundedCornerShape(32.dp))
-          .drawBehind {
-            drawImage(canvasBackground)
-          },
-        canvasState = { canvasState },
+        showFrames = showFrames,
+        modifier = modifier,
         onDragStart = onDragStart,
         onDrag = onDrag,
         onDragEnd = onDragEnd,
+        onDelayChanged = onDelayChanged,
+        onPencilClick = onPencilClick,
+        onEraseClick = onEraseClick,
+        onColorClick = onColorClick,
+        onBrushSizeClick = onBrushSizeClick,
+        onShapeClick = onShapeClick
       )
 
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(80.dp)
-          .padding(bottom = 16.dp)
-          .padding(horizontal = 16.dp)
-          .navigationBarsPadding()
-      ) {
-        if (canvasState.editorConfiguration.isPreviewAnimation) {
-          Row(
-            modifier = Modifier
-              .matchParentSize()
-              .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-          ) {
-            YandexcupComponentsSlider(
-              modifier = Modifier
-                .weight(1f)
-                .height(24.dp),
-              value = canvasState.editorConfiguration.animationDelay.toFloat(),
-              valueRange = 10f..1000f,
-              onValueChange = { animationDelay ->
-                onDelayChanged(animationDelay)
-              },
-            )
+      Pickers(
+        canvasState = canvasState,
+        onCustomColorClick = onCustomColorClick,
+        onFastColorClicked = onFastColorClicked,
+        onColorChanged = onColorChanged,
+        changeBrushSize = changeBrushSize,
+        selectShape = selectShape
+      )
 
-            IconButton(
-              modifier = Modifier,
-              onClick = {}
-            ) {
-              Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = null,
-                tint = Color.White
-              )
-            }
+      if (canvasState.framesSheetVisible) {
+        ModalBottomSheet(
+          sheetState = rememberModalBottomSheetState(),
+          onDismissRequest = {
+            hideFrames()
           }
-        } else {
-          BottomControls(
-            modifier = Modifier
-              .fillMaxSize()
-              .padding(horizontal = 8.dp),
-            editorConfiguration = canvasState.editorConfiguration,
-            onPencilClick = onPencilClick,
-            onEraseClick = onEraseClick,
-            onColorClick = onColorClick,
-            onBrushSizeClick = onBrushSizeClick
+        ) {
+          FramesScreen(
+            modifier = Modifier.fillMaxWidth(),
+            frames = canvasState.frames,
+            selectFrame = selectFrame,
+            deleteFrame = { index ->
+              deleteFrame(FrameIndex.Index(index))
+            },
+            deleteAllFrames = deleteAllFrames
           )
         }
       }
     }
+  }
+}
 
-    if (canvasState.editorConfiguration.colorPickerVisible) {
-      ColorsPicker(
-        editorConfiguration = canvasState.editorConfiguration,
-        modifier = Modifier
-          .navigationBarsPadding()
-          .width(Min)
-          .padding(bottom = 64.dp)
-          .align(Alignment.BottomCenter)
-          .padding(16.dp),
-        smallPickerColors = persistentListOf(
-          Color.White,
-          Color.Red,
-          Color.Blue,
-          Color.Black,
-        ),
-        customColorItem = {
-          Icon(
-            modifier = Modifier
-              .size(32.dp)
-              .clip(CircleShape)
-              .clickable { onCustomColorClick() },
-            painter = painterResource(R.drawable.palette),
-            contentDescription = null,
-            tint = if (canvasState.editorConfiguration.colorPickerExpanded) {
-              MaterialTheme.colorScheme.primary
-            } else {
-              Color.White
-            }
-          )
+@Composable
+private fun Content(
+  canvasState: CanvasState,
+  undoChange: () -> Unit,
+  redoChange: () -> Unit,
+  deleteFrame: (FrameIndex) -> Unit,
+  addFrame: () -> Unit,
+  stopAnimation: () -> Unit,
+  startAnimation: () -> Unit,
+  copyFrame: () -> Unit,
+  showFrames: () -> Unit,
+  modifier: Modifier,
+  onDragStart: (Offset) -> Unit,
+  onDrag: (Offset) -> Unit,
+  onDragEnd: () -> Unit,
+  onDelayChanged: (Float) -> Unit,
+  onPencilClick: () -> Unit,
+  onEraseClick: () -> Unit,
+  onColorClick: () -> Unit,
+  onBrushSizeClick: () -> Unit,
+  onShapeClick: () -> Unit
+) {
+  Column(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(8.dp)
+  ) {
+    TopControls(
+      editorConfiguration = canvasState.editorConfiguration,
+      modifier = Modifier
+        .statusBarsPadding()
+        .fillMaxWidth()
+        .padding(top = 16.dp)
+        .padding(horizontal = 16.dp),
+      undoChange = undoChange,
+      redoChange = redoChange,
+      deleteFrame = {
+        deleteFrame(Current)
+      },
+      addFrame = addFrame,
+      stopAnimation = stopAnimation,
+      startAnimation = startAnimation,
+      copyFrame = copyFrame,
+      canUndo = { canvasState.canUndo },
+      canRedo = { canvasState.canRedo },
+      showFrames = showFrames
+    )
+
+    val canvasBackground = ImageBitmap.imageResource(R.drawable.canvas)
+    Canvas(
+      modifier = modifier
+        .weight(1f)
+        .fillMaxWidth()
+        .padding(16.dp)
+        .clip(RoundedCornerShape(32.dp))
+        .drawBehind {
+          drawImage(canvasBackground)
         },
-        fastColorClicked = onFastColorClicked,
-        pickColor = onColorChanged
-      )
-    }
+      canvasState = { canvasState },
+      onDragStart = onDragStart,
+      onDrag = onDrag,
+      onDragEnd = onDragEnd,
+    )
 
-    if (canvasState.editorConfiguration.brushSizePickerVisible) {
-      BrushSizePicker(
+    BottomControls(
+      canvasState = canvasState,
+      onDelayChanged = onDelayChanged,
+      onPencilClick = onPencilClick,
+      onEraseClick = onEraseClick,
+      onColorClick = onColorClick,
+      onBrushSizeClick = onBrushSizeClick,
+      onShapeClick = onShapeClick
+    )
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BottomControls(
+  canvasState: CanvasState,
+  onDelayChanged: (Float) -> Unit,
+  onPencilClick: () -> Unit,
+  onEraseClick: () -> Unit,
+  onColorClick: () -> Unit,
+  onBrushSizeClick: () -> Unit,
+  onShapeClick: () -> Unit
+) {
+  Box(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(80.dp)
+      .padding(bottom = 16.dp)
+      .padding(horizontal = 16.dp)
+      .navigationBarsPadding()
+  ) {
+    if (canvasState.editorConfiguration.isPreviewAnimation) {
+      Row(
         modifier = Modifier
-          .padding(bottom = 100.dp)
-          .navigationBarsPadding()
-          .align(Alignment.BottomCenter)
-          .background(Color.Gray, RoundedCornerShape(4.dp))
-          .padding(horizontal = 16.dp)
-          .height(50.dp)
-          .width(200.dp),
+          .matchParentSize()
+          .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+      ) {
+        YandexcupComponentsSlider(
+          modifier = Modifier
+            .weight(1f)
+            .height(24.dp),
+          value = canvasState.editorConfiguration.animationDelay.toFloat(),
+          valueRange = 10f..1000f,
+          onValueChange = { animationDelay ->
+            onDelayChanged(animationDelay)
+          },
+        )
+
+        IconButton(
+          modifier = Modifier,
+          onClick = {}
+        ) {
+          Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = null,
+            tint = Color.White
+          )
+        }
+      }
+    } else {
+      BottomControls(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(horizontal = 8.dp),
         editorConfiguration = canvasState.editorConfiguration,
-        changeBrushSize = changeBrushSize
+        onPencilClick = onPencilClick,
+        onEraseClick = onEraseClick,
+        onColorClick = onColorClick,
+        onBrushSizeClick = onBrushSizeClick,
+        onShapesClick = onShapeClick
       )
     }
+  }
+}
+
+@Composable
+private fun BoxScope.Pickers(
+  canvasState: CanvasState,
+  onCustomColorClick: () -> Unit,
+  onFastColorClicked: (Color) -> Unit,
+  onColorChanged: (Color) -> Unit,
+  changeBrushSize: (Float) -> Unit,
+  selectShape: (Shape) -> Unit = {},
+) {
+  if (canvasState.editorConfiguration.colorPickerVisible) {
+    ColorsPicker(
+      editorConfiguration = canvasState.editorConfiguration,
+      modifier = Modifier
+        .navigationBarsPadding()
+        .width(Min)
+        .padding(bottom = 64.dp)
+        .align(Alignment.BottomCenter)
+        .padding(16.dp),
+      smallPickerColors = persistentListOf(
+        Color.White,
+        Color.Red,
+        Color.Blue,
+        Color.Black,
+      ),
+      customColorItem = {
+        Icon(
+          modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable { onCustomColorClick() },
+          painter = painterResource(R.drawable.palette),
+          contentDescription = null,
+          tint = if (canvasState.editorConfiguration.colorPickerExpanded) {
+            MaterialTheme.colorScheme.primary
+          } else {
+            Color.White
+          }
+        )
+      },
+      fastColorClicked = onFastColorClicked,
+      pickColor = onColorChanged
+    )
+  }
+
+  if (canvasState.editorConfiguration.brushSizePickerVisible) {
+    BrushSizePicker(
+      modifier = Modifier
+        .padding(bottom = 100.dp)
+        .navigationBarsPadding()
+        .align(Alignment.BottomCenter)
+        .background(Color.Gray, RoundedCornerShape(4.dp))
+        .padding(horizontal = 16.dp)
+        .height(50.dp)
+        .width(200.dp),
+      editorConfiguration = canvasState.editorConfiguration,
+      changeBrushSize = changeBrushSize
+    )
+  }
+
+  if (canvasState.editorConfiguration.shapesPickerVisible) {
+    InstrumentsPicker(
+      modifier = Modifier
+        .padding(bottom = 80.dp)
+        .navigationBarsPadding()
+        .align(Alignment.BottomCenter),
+      selectShape = selectShape
+    )
   }
 }
 

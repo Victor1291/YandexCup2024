@@ -2,7 +2,9 @@ package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import ru.kartollika.yandexcup.canvas.FrameIndex
+import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.mvi2.MVIAction
 
 sealed interface CanvasAction : MVIAction {
@@ -43,4 +45,7 @@ sealed interface CanvasAction : MVIAction {
   data object HideBrushSizePicker : CanvasAction
   data class ChangeBrushSize(val size: Float) : CanvasAction
   data object CustomColorClick : CanvasAction
+  data object OpenShapes : CanvasAction
+  data class SelectShape(val shape: Shape) : CanvasAction
+  data class DrawPath(val path: Path) : CanvasAction
 }
