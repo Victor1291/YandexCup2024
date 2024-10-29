@@ -258,50 +258,54 @@ private fun CanvasScreen(
         onDragEnd = onDragEnd,
       )
 
-      if (canvasState.editorConfiguration.isPreviewAnimation) {
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 32.dp)
-            .padding(bottom = 16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-          YandexcupComponentsSlider(
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(80.dp)
+          .padding(bottom = 16.dp)
+          .padding(horizontal = 16.dp)
+          .navigationBarsPadding()
+      ) {
+        if (canvasState.editorConfiguration.isPreviewAnimation) {
+          Row(
             modifier = Modifier
-              .weight(1f)
-              .height(24.dp),
-            value = canvasState.editorConfiguration.animationDelay.toFloat(),
-            valueRange = 10f..1000f,
-            onValueChange = { animationDelay ->
-              onDelayChanged(animationDelay)
-            },
-          )
-
-          IconButton(
-            modifier = Modifier,
-            onClick = {}
+              .matchParentSize()
+              .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
           ) {
-            Icon(
-              imageVector = Icons.Default.Share,
-              contentDescription = null,
-              tint = Color.White
+            YandexcupComponentsSlider(
+              modifier = Modifier
+                .weight(1f)
+                .height(24.dp),
+              value = canvasState.editorConfiguration.animationDelay.toFloat(),
+              valueRange = 10f..1000f,
+              onValueChange = { animationDelay ->
+                onDelayChanged(animationDelay)
+              },
             )
+
+            IconButton(
+              modifier = Modifier,
+              onClick = {}
+            ) {
+              Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = null,
+                tint = Color.White
+              )
+            }
           }
+        } else {
+          BottomControls(
+            modifier = Modifier
+              .fillMaxSize(),
+            editorConfiguration = canvasState.editorConfiguration,
+            onPencilClick = onPencilClick,
+            onEraseClick = onEraseClick,
+            onColorClick = onColorClick
+          )
         }
-      } else {
-        BottomControls(
-          modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-          editorConfiguration = canvasState.editorConfiguration,
-          onPencilClick = onPencilClick,
-          onEraseClick = onEraseClick,
-          onColorClick = onColorClick
-        )
       }
     }
 

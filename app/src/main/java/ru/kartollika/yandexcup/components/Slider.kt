@@ -57,8 +57,8 @@ fun Slider(
     track = {
       Image(
         modifier = Modifier
-          .fillMaxWidth()
-          .fillMaxHeight(),
+          .fillMaxWidth(),
+        contentScale = Companion.FillBounds,
         painter = painterResource(R.drawable.track),
         contentDescription = null
       )
