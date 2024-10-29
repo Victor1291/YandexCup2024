@@ -22,6 +22,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
@@ -61,13 +62,22 @@ class CanvasFeature @Inject constructor(
         }
       }
 
-      is StartAnimation -> startFramesAnimation()
+      is StartAnimation -> {
+        consumeAction(HideColorPicker)
+        startFramesAnimation()
+      }
       is DrawFinish -> Unit
-      is DrawStart -> Unit
+      is DrawStart -> {
+        consumeAction(HideColorPicker)
+      }
       is UpdateOffset -> Unit
-      is EraseClick -> Unit
+      is EraseClick -> {
+        consumeAction(HideColorPicker)
+      }
       is ChangeColor -> Unit
-      is PencilClick -> Unit
+      is PencilClick -> {
+        consumeAction(HideColorPicker)
+      }
       is UndoChange -> Unit
       is RedoChange -> Unit
       is OnColorChanged -> Unit
@@ -81,6 +91,7 @@ class CanvasFeature @Inject constructor(
       HideFrames -> Unit
       is SelectFrame -> Unit
       is DeleteAllFrames -> Unit
+      is HideColorPicker -> Unit
     }
   }
 
@@ -124,6 +135,7 @@ class CanvasFeature @Inject constructor(
               )
             }
           ).toImmutableList(),
+          editorConfiguration = state.editorConfiguration
         )
       }
 
@@ -168,7 +180,7 @@ class CanvasFeature @Inject constructor(
 
       is ChangeColor -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
-          colorPickerVisible = true,
+          colorPickerVisible = !state.editorConfiguration.colorPickerVisible,
         )
       )
 
@@ -313,6 +325,12 @@ class CanvasFeature @Inject constructor(
       DeleteAllFrames -> state.copy(
         frames = persistentListOf(Frame()),
         currentFrameIndex = 0
+      )
+
+      is HideColorPicker -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          colorPickerVisible = false
+        )
       )
     }
   }
