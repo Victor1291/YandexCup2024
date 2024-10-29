@@ -138,6 +138,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.SelectFrame(frameIndex))
   }
 
+  fun deleteAllFrames() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.DeleteAllFrames)
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -158,7 +162,8 @@ fun CanvasScreen(
     copyFrame = remember { ::copyFrame },
     showFrames = remember { ::showFrames },
     hideFrames = remember { ::hideFrames },
-    selectFrame = remember { ::selectFrame }
+    selectFrame = remember { ::selectFrame },
+    deleteAllFrames = remember { ::deleteAllFrames }
   )
 }
 
@@ -185,6 +190,7 @@ private fun CanvasScreen(
   showFrames: () -> Unit = {},
   hideFrames: () -> Unit = {},
   selectFrame: (Int) -> Unit = {},
+  deleteAllFrames: () -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
@@ -203,7 +209,8 @@ private fun CanvasScreen(
           selectFrame = selectFrame,
           deleteFrame = { index ->
             deleteFrame(FrameIndex.Index(index))
-          }
+          },
+          deleteAllFrames = deleteAllFrames
         )
       }
     }

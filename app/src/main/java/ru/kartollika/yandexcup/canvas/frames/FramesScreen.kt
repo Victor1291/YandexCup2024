@@ -3,6 +3,7 @@ package ru.kartollika.yandexcup.canvas.frames
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
-import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.mvi.Frames
@@ -36,27 +37,41 @@ fun FramesScreen(
   frames: Frames,
   selectFrame: (Int) -> Unit = {},
   deleteFrame: (Int) -> Unit = {},
+  deleteAllFrames: () -> Unit = {},
 ) {
   Surface(
     modifier = modifier
   ) {
-    LazyColumn(
-      modifier = Modifier.fillMaxSize()
-    ) {
-      itemsIndexed(frames) { index, frame ->
-        FrameItem(
-          modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-              selectFrame(index)
+    Column {
+      TextButton(
+        modifier = Modifier
+          .padding(end = 16.dp)
+          .align(Alignment.End),
+        onClick = {
+          deleteAllFrames()
+        }
+      ) {
+        Text("Удалить кадры", color = Color.Red)
+      }
+
+      LazyColumn(
+        modifier = Modifier.fillMaxSize()
+      ) {
+        itemsIndexed(frames) { index, frame ->
+          FrameItem(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                selectFrame(index)
+              }
+              .padding(16.dp),
+            frame = frame,
+            index = index,
+            deleteFrame = {
+              deleteFrame(index)
             }
-            .padding(16.dp),
-          frame = frame,
-          index = index,
-          deleteFrame = {
-            deleteFrame(index)
-          }
-        )
+          )
+        }
       }
     }
   }

@@ -8,6 +8,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
 import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
@@ -15,6 +16,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
@@ -78,6 +80,7 @@ class CanvasFeature @Inject constructor(
       ShowFrames -> Unit
       HideFrames -> Unit
       is SelectFrame -> Unit
+      is DeleteAllFrames -> Unit
     }
   }
 
@@ -305,6 +308,11 @@ class CanvasFeature @Inject constructor(
       is SelectFrame -> state.copy(
         currentFrameIndex = action.frameIndex,
         framesSheetVisible = false
+      )
+
+      DeleteAllFrames -> state.copy(
+        frames = persistentListOf(Frame()),
+        currentFrameIndex = 0
       )
     }
   }
