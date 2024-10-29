@@ -22,7 +22,7 @@ fun BrushSizePicker(
       modifier = Modifier
         .fillMaxSize(),
       value = editorConfiguration.brushSize,
-      valueRange = 4f..30f,
+      valueRange = 4f..100f,
       onValueChange = { value ->
         changeBrushSize(value)
       },

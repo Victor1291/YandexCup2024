@@ -21,8 +21,9 @@ sealed interface CanvasAction : MVIAction {
 
   data object EraseClick : CanvasAction
   data object PencilClick : CanvasAction
-  data object ChangeColor : CanvasAction
+  data object OnColorClick : CanvasAction
   data class OnColorChanged(val color: Color) : CanvasAction
+  data class OnColorItemClicked(val color: Color) : CanvasAction
   data object UndoChange : CanvasAction
   data object RedoChange : CanvasAction
   data object AddNewFrame : CanvasAction
@@ -37,7 +38,9 @@ sealed interface CanvasAction : MVIAction {
   data class SelectFrame(val frameIndex: Int) : CanvasAction
   data object DeleteAllFrames : CanvasAction
   data object HideColorPicker : CanvasAction
+  data object ShowColorPicker : CanvasAction
   data object ShowBrushSizePicker : CanvasAction
   data object HideBrushSizePicker : CanvasAction
   data class ChangeBrushSize(val size: Float) : CanvasAction
+  data object CustomColorClick : CanvasAction
 }

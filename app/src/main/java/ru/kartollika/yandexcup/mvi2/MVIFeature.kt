@@ -37,7 +37,7 @@ abstract class MVIFeature<State : MVIState, Action : MVIAction, Event : MVIEvent
 
   // UI one time events
   private val _uiEvents: MutableSharedFlow<Event> by lazy {
-    MutableSharedFlow(extraBufferCapacity = 2)
+    MutableSharedFlow(extraBufferCapacity = 1)
   }
   override val events: SharedFlow<Event>
     get() = _uiEvents.asSharedFlow()

@@ -1,9 +1,11 @@
 package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +37,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -75,7 +78,7 @@ fun CanvasScreen(
   }
 
   fun changeColor() {
-    actionConsumer.consumeAction(CanvasAction.ChangeColor)
+    actionConsumer.consumeAction(CanvasAction.OnColorClick)
   }
 
   fun undoChange() {
@@ -88,6 +91,10 @@ fun CanvasScreen(
 
   fun onColorChanged(color: Color) {
     actionConsumer.consumeAction(CanvasAction.OnColorChanged(color))
+  }
+
+  fun onFastColorClicked(color: Color) {
+    actionConsumer.consumeAction(CanvasAction.OnColorItemClicked(color))
   }
 
   fun addFrame() {
@@ -150,6 +157,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.ChangeBrushSize(size))
   }
 
+  fun onCustomColorClick() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.CustomColorClick)
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -166,6 +177,7 @@ fun CanvasScreen(
     onEraseClick = remember { ::onEraseClick },
     onColorClick = remember { ::changeColor },
     onColorChanged = remember { ::onColorChanged },
+    onFastColorClicked = remember { ::onFastColorClicked },
     onDelayChanged = remember { ::onDelayChanged },
     copyFrame = remember { ::copyFrame },
     showFrames = remember { ::showFrames },
@@ -174,6 +186,7 @@ fun CanvasScreen(
     deleteAllFrames = remember { ::deleteAllFrames },
     onBrushSizeClick = remember { ::onBrushSizeClick },
     changeBrushSize = remember { ::changeBrushSize },
+    onCustomColorClick = remember { ::onCustomColorClick }
   )
 }
 
@@ -195,6 +208,7 @@ private fun CanvasScreen(
   onEraseClick: () -> Unit = {},
   onColorClick: () -> Unit = {},
   onColorChanged: (Color) -> Unit = {},
+  onFastColorClicked: (Color) -> Unit = {},
   onDelayChanged: (Float) -> Unit = {},
   copyFrame: () -> Unit = {},
   showFrames: () -> Unit = {},
@@ -203,6 +217,7 @@ private fun CanvasScreen(
   deleteAllFrames: () -> Unit = {},
   onBrushSizeClick: () -> Unit = {},
   changeBrushSize: (Float) -> Unit = {},
+  onCustomColorClick: () -> Unit = {},
 ) {
   Surface(
     modifier = modifier,
@@ -325,12 +340,12 @@ private fun CanvasScreen(
 
     if (canvasState.editorConfiguration.colorPickerVisible) {
       ColorsPicker(
+        editorConfiguration = canvasState.editorConfiguration,
         modifier = Modifier
-          .padding(horizontal = 48.dp)
           .navigationBarsPadding()
+          .width(Min)
           .padding(bottom = 64.dp)
           .align(Alignment.BottomCenter)
-          .background(Color.Gray, RoundedCornerShape(4.dp))
           .padding(16.dp),
         smallPickerColors = persistentListOf(
           Color.White,
@@ -338,17 +353,19 @@ private fun CanvasScreen(
           Color.Blue,
           Color.Black,
         ),
-        colorItem = { color ->
-          ColorItem(
-            color = color,
+        customColorItem = {
+          Icon(
             modifier = Modifier
               .size(32.dp)
-              .clip(CircleShape),
-            onPick = {
-              onColorChanged(color)
-            }
+              .clip(CircleShape)
+              .clickable { onCustomColorClick() },
+            painter = painterResource(R.drawable.palette),
+            contentDescription = null,
+            tint = Color.White
           )
         },
+        fastColorClicked = onFastColorClicked,
+        pickColor = onColorChanged
       )
     }
 

@@ -70,7 +70,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 
     Spacer(
       modifier = Modifier
-        .size(editorConfiguration.brushSize.dp * 0.75f)
+        .size(editorConfiguration.brushSize.dp * 0.2f)
         .background(Color.White, CircleShape)
     )
   }

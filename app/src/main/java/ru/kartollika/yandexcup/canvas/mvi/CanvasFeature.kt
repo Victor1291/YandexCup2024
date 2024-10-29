@@ -13,9 +13,9 @@ import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeColor
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CustomColorClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
@@ -26,10 +26,13 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorChanged
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.OnColorItemClicked
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.RedoChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.SelectFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowBrushSizePicker
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
@@ -77,8 +80,13 @@ class CanvasFeature @Inject constructor(
       is EraseClick -> {
         consumeAction(HideColorPicker)
       }
-      is ChangeColor -> {
+      is OnColorClick -> {
         consumeAction(HideBrushSizePicker)
+        if (state.editorConfiguration.colorPickerVisible) {
+          consumeAction(HideColorPicker)
+        } else {
+          consumeAction(ShowColorPicker)
+        }
       }
       is PencilClick -> {
         consumeAction(HideColorPicker)
@@ -102,6 +110,11 @@ class CanvasFeature @Inject constructor(
       }
       is ChangeBrushSize -> Unit
       HideBrushSizePicker -> Unit
+      CustomColorClick -> Unit
+      ShowColorPicker -> Unit
+      is OnColorItemClicked -> {
+        consumeAction(HideColorPicker)
+      }
     }
   }
 
@@ -188,8 +201,8 @@ class CanvasFeature @Inject constructor(
           currentMode = Erase
         ),
       )
-
-      is ChangeColor -> state.copy(
+      is OnColorClick -> state
+      is ShowColorPicker -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           colorPickerVisible = !state.editorConfiguration.colorPickerVisible,
         )
@@ -252,7 +265,6 @@ class CanvasFeature @Inject constructor(
       is OnColorChanged -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           color = action.color,
-          colorPickerVisible = false
         )
       )
 
@@ -340,7 +352,8 @@ class CanvasFeature @Inject constructor(
 
       is HideColorPicker -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
-          colorPickerVisible = false
+          colorPickerVisible = false,
+          colorPickerExpanded = false
         )
       )
 
@@ -359,6 +372,18 @@ class CanvasFeature @Inject constructor(
       HideBrushSizePicker -> state.copy(
         editorConfiguration = state.editorConfiguration.copy(
           brushSizePickerVisible = false
+        )
+      )
+
+      CustomColorClick -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          colorPickerExpanded = true
+        )
+      )
+
+      is OnColorItemClicked -> state.copy(
+        editorConfiguration = state.editorConfiguration.copy(
+          color = action.color
         )
       )
     }

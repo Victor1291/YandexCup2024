@@ -66,8 +66,9 @@ data class EditorConfiguration(
   val isPreviewAnimation: Boolean = false,
   val color: Color = Color.Blue,
   val colorPickerVisible: Boolean = false,
+  val colorPickerExpanded: Boolean = false,
   val brushSizePickerVisible: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
   val animationDelay: Int = 200,
-  val brushSize: Float = 4f
+  val brushSize: Float = 10f
 )
