@@ -4,17 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -25,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -49,6 +55,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
+import ru.kartollika.yandexcup.components.Slider as YandexcupComponentsSlider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -245,20 +252,36 @@ private fun CanvasScreen(
       )
 
       if (canvasState.editorConfiguration.isPreviewAnimation) {
-        Box(
+        Row(
           modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(horizontal = 32.dp)
+            .padding(bottom = 16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-          Slider(
+          YandexcupComponentsSlider(
+            modifier = Modifier
+              .weight(1f)
+              .height(24.dp),
             value = canvasState.editorConfiguration.animationDelay.toFloat(),
             valueRange = 10f..1000f,
             onValueChange = { animationDelay ->
               onDelayChanged(animationDelay)
             },
           )
+
+          IconButton(
+            modifier = Modifier,
+            onClick = {}
+          ) {
+            Icon(
+              imageVector = Icons.Default.Share,
+              contentDescription = null,
+              tint = Color.White
+            )
+          }
         }
       } else {
         BottomControls(
