@@ -338,8 +338,4 @@ class CanvasFeature @Inject constructor(
       )
     }
   }
-
-  private fun getCurrentEditorAsPathProperties(state: CanvasState): PathProperties {
-    return editorConfigurationParser.parseToProperties(state.editorConfiguration)
-  }
 }
