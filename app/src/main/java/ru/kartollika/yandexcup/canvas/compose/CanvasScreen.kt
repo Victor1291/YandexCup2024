@@ -591,6 +591,7 @@ private fun Canvas(
     modifier = modifier,
     onDragStart = {
       canvasDrawUiState.startDrawing(it)
+      onDragStart()
     },
     onDrag = {
       canvasDrawUiState.draw(it)
