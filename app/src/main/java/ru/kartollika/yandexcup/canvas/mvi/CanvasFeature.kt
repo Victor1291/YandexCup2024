@@ -30,7 +30,6 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CustomColorClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawPath
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ExportToGif
@@ -115,7 +114,6 @@ class CanvasFeature @Inject constructor(
 
       OpenShapes -> Unit
       is SelectShape -> drawShape(action.shape)
-      is DrawPath -> Unit
       is ExportToGif -> processExportToGif()
       is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
       is AddFrames -> Unit
@@ -153,7 +151,15 @@ class CanvasFeature @Inject constructor(
         path.lineTo(100f, 100f)
       }
     }
-    consumeAction(DrawPath(path))
+
+    consumeAction(
+      DrawFinish(
+        PathWithProperties(
+          path = path,
+          properties = editorConfigurationParser.parseToProperties(state.value.editorConfiguration)
+        )
+      )
+    )
   }
 
   private suspend fun startFramesAnimation() = coroutineScope {
@@ -316,28 +322,6 @@ class CanvasFeature @Inject constructor(
       )
 
       is SelectShape -> state
-      is DrawPath -> state.copy(
-        frames = state.frames.replace(
-          replaceIndex = state.currentFrameIndex,
-          newItem = { frame ->
-            val properties = getCurrentEditorAsPathProperties(state).copy(
-              eraseMode = false
-            )
-
-            frame.copy(
-              paths = frame.paths.toMutableList().apply {
-                add(
-                  PathWithProperties(
-                    path = action.path,
-                    properties = properties
-                  )
-                )
-              }.toImmutableList()
-            )
-          }
-        ).toImmutableList()
-      )
-
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
       is GenerateDummyFrames -> state

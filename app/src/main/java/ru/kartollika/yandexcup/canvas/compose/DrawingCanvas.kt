@@ -2,6 +2,7 @@ package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Modifier
@@ -29,9 +30,14 @@ fun DrawingCanvas(
   onDragEnd: () -> Unit = {},
   onDragCancel: () -> Unit = {},
   onDrag: (Offset) -> Unit = {},
-  scale: Float = 1f
+  scale: Float = 1f,
 ) {
   val drawModifier = Modifier
+    .pointerInput(Unit) {
+      detectTransformGestures(panZoomLock = true) { centroid, pan, zoom, rotation ->
+        println("$centroid $pan $zoom $rotation")
+      }
+    }
     .pointerInput(Unit) {
       detectDragGestures(
         onDragStart = { onDragStart(it) },
