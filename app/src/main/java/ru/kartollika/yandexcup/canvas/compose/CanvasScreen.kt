@@ -468,8 +468,8 @@ private fun Content(
       stopAnimation = stopAnimation,
       startAnimation = startAnimation,
       copyFrame = copyFrame,
-      canUndo = { canvasState.canUndo },
-      canRedo = { canvasState.canRedo },
+      canUndo = canvasState.canUndo,
+      canRedo = canvasState.canRedo,
       showFrames = showFrames
     )
 
@@ -549,7 +549,6 @@ private fun BottomControls(
           Icon(
             imageVector = Icons.Default.Share,
             contentDescription = null,
-            tint = Color.White
           )
         }
       }

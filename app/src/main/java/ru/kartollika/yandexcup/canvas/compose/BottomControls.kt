@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
@@ -68,7 +66,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
           color = if (editorConfiguration.brushSizePickerVisible) {
             MaterialTheme.colorScheme.primary
           } else {
-            Color.White
+            LocalContentColor.current
           },
           shape = CircleShape
         )
@@ -80,7 +78,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
     Spacer(
       modifier = Modifier
         .size(editorConfiguration.brushSize.dp * 0.2f)
-        .background(Color.White, CircleShape)
+        .background(LocalContentColor.current, CircleShape)
     )
   }
 }
@@ -93,46 +91,35 @@ private fun EditorButtons(
   onColorClick: () -> Unit,
   onShapesClick: () -> Unit = {},
 ) {
-  Icon(
+  ActionIcon(
     modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable {
-        onPencilClick()
-      },
-    painter = painterResource(R.drawable.pencil),
+      .size(32.dp),
+    icon = R.drawable.pencil,
+    onClick = onPencilClick,
     tint = if (editorConfiguration.currentMode == Pencil) {
       MaterialTheme.colorScheme.primary
     } else {
-      Color.White
-    },
-    contentDescription = null,
+      MaterialTheme.colorScheme.onSurface
+    }
   )
 
-  Icon(
+  ActionIcon(
     modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable { onEraseClick() },
-    painter = painterResource(R.drawable.erase),
-    contentDescription = null,
+      .size(32.dp),
+    icon = R.drawable.erase,
+    onClick = onEraseClick,
     tint = if (editorConfiguration.currentMode == Erase) {
       MaterialTheme.colorScheme.primary
     } else {
-      Color.White
-    },
+      MaterialTheme.colorScheme.onSurface
+    }
   )
 
-  Icon(
+  ActionIcon(
     modifier = Modifier
-      .size(32.dp)
-      .clip(CircleShape)
-      .clickable {
-        onShapesClick()
-      },
-    painter = painterResource(R.drawable.instruments),
-    contentDescription = null,
-    tint = Color.White
+      .size(32.dp),
+    icon = R.drawable.instruments,
+    onClick = onShapesClick,
   )
 
   Spacer(
