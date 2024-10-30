@@ -1,5 +1,9 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -7,9 +11,7 @@ import android.graphics.Paint
 import android.graphics.Paint.Style.STROKE
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.toArgb
@@ -38,7 +40,6 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CustomColorClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteFrame
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawPath
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
@@ -61,7 +62,6 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.canvas.openBrushPicker
@@ -85,30 +85,12 @@ class CanvasFeature @Inject constructor(
 
   override suspend fun processAction(state: CanvasState, action: CanvasAction) {
     when (action) {
-      is DrawDrag -> {
-        val frame = state.currentFrame
-
-        val lastOffset = frame.lastOffset
-        if (lastOffset != Offset.Unspecified) {
-          val newOffset = Offset(
-            lastOffset.x + action.offset.x,
-            lastOffset.y + action.offset.y
-          )
-          frame.currentPath?.path?.lineTo(newOffset.x, newOffset.y)
-          consumeAction(UpdateOffset(newOffset))
-        }
-      }
-
+      is DrawStart -> Unit
       is StartAnimation -> {
         startFramesAnimation()
       }
 
       is DrawFinish -> Unit
-      is DrawStart -> {
-        consumeAction(HideColorPicker)
-      }
-
-      is UpdateOffset -> Unit
       is EraseClick -> {
         consumeAction(HideColorPicker)
       }
@@ -230,55 +212,10 @@ class CanvasFeature @Inject constructor(
 
   override fun reduce(state: CanvasState, action: CanvasAction): CanvasState {
     return when (action) {
-      is DrawStart -> {
-        if (state.editorConfiguration.isPreviewAnimation) return state
-
-        val path = Path()
-        val properties = PathProperties(
-          color = if (state.editorConfiguration.currentMode == Erase) {
-            Color.Transparent
-          } else {
-            state.editorConfiguration.color
-          },
-          eraseMode = state.editorConfiguration.currentMode == Erase,
-          brushSize = state.editorConfiguration.brushSize
-        )
-
-        path.moveTo(action.offset.x, action.offset.y)
-        state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              frame.copy(
-                currentPath = PathWithProperties(
-                  path = path,
-                  properties = properties
-                ),
-                lastOffset = action.offset
-              )
-            }
-          ).toImmutableList(),
-          editorConfiguration = state.editorConfiguration
-        )
-      }
-
-      is DrawDrag -> state
-      is UpdateOffset -> {
-        state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame: Frame ->
-              frame.copy(
-                lastOffset = action.offset
-              )
-            }
-          ).toImmutableList()
-        )
-      }
-
-      DrawFinish -> {
+      is DrawStart -> state.hidePickers()
+      is DrawFinish -> {
         val paths = state.currentFrame.paths.toMutableList().apply {
-          state.currentFrame.currentPath?.let(this::add)
+          action.pathWithProperties.let(this::add)
         }.toImmutableList()
 
         state.copy(
@@ -287,7 +224,6 @@ class CanvasFeature @Inject constructor(
             newItem = { frame ->
               val newFrame = frame.copy(
                 paths = paths,
-                currentPath = null,
               )
 
               newFrame.copy(

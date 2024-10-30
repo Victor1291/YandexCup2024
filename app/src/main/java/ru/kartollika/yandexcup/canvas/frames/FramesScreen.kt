@@ -29,6 +29,7 @@ import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.mvi.Frames
+import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
@@ -93,9 +94,9 @@ fun FrameItem(
       paths = {
         frame.paths
       },
-      currentPath = {
-        null
-      },
+//      currentPath = {
+//        null
+//      },
       previousPaths = {
         null
       },
@@ -104,7 +105,8 @@ fun FrameItem(
         .width(60.dp)
         .background(Color.White),
       // TODO Вычислить программно этот скейл
-      scale = 0.16f
+      scale = 0.16f,
+      canvasDrawUiState = rememberCanvasDrawState()
     )
 
     Text(

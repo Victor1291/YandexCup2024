@@ -3,6 +3,7 @@ package ru.kartollika.yandexcup.canvas.compose
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -13,14 +14,17 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.collections.immutable.ImmutableList
+import ru.kartollika.yandexcup.canvas.CanvasDrawUiState
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 
 @Composable
+@NonRestartableComposable
 fun DrawingCanvas(
   paths: () -> ImmutableList<PathWithProperties>,
-  currentPath: () -> PathWithProperties?,
+//  currentPath: () -> PathWithProperties?,
   previousPaths: () -> ImmutableList<PathWithProperties>?,
   modifier: Modifier = Modifier,
+  canvasDrawUiState: CanvasDrawUiState,
   onDragStart: (Offset) -> Unit = {},
   onDragEnd: () -> Unit = {},
   onDragCancel: () -> Unit = {},
@@ -76,7 +80,8 @@ fun DrawingCanvas(
           )
         }
 
-        currentPath()?.let { pathWithProperties ->
+
+        canvasDrawUiState.currentPath?.let { pathWithProperties ->
           drawPath(
             path = pathWithProperties.path,
             color = pathWithProperties.properties.color,

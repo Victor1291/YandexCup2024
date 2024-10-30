@@ -1,5 +1,8 @@
 package ru.kartollika.yandexcup.canvas.compose
 
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
+//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +32,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
@@ -53,14 +56,14 @@ import ru.kartollika.yandexcup.canvas.frames.FramesScreen
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
+import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
+import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 import ru.kartollika.yandexcup.components.Slider as YandexcupComponentsSlider
@@ -118,16 +121,12 @@ fun CanvasScreen(
     actionConsumer.consumeAction(CanvasAction.StopAnimation)
   }
 
-  fun onDragStart(offset: Offset) {
-    viewModel.actionConsumer.consumeAction(DrawStart(offset))
+  fun onDragStart() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.DrawStart)
   }
 
-  fun onDrag(offset: Offset) {
-    viewModel.actionConsumer.consumeAction(DrawDrag(offset))
-  }
-
-  fun onDragEnd() {
-    viewModel.actionConsumer.consumeAction(DrawFinish)
+  fun onDragEnd(pathWithProperties: PathWithProperties) {
+    viewModel.actionConsumer.consumeAction(DrawFinish(pathWithProperties))
   }
 
   fun onDelayChanged(animationDelay: Float) {
@@ -188,7 +187,6 @@ fun CanvasScreen(
     stopAnimation = remember { ::stopAnimation },
     startAnimation = remember { ::startAnimation },
     onDragStart = remember { ::onDragStart },
-    onDrag = remember { ::onDrag },
     onDragEnd = remember { ::onDragEnd },
     onPencilClick = remember { ::onPencilClick },
     onEraseClick = remember { ::onEraseClick },
@@ -221,9 +219,8 @@ private fun CanvasScreen(
   addFrame: () -> Unit = {},
   stopAnimation: () -> Unit = {},
   startAnimation: () -> Unit = {},
-  onDragStart: (Offset) -> Unit = {},
-  onDrag: (Offset) -> Unit = {},
-  onDragEnd: () -> Unit = {},
+  onDragStart: () -> Unit = {},
+  onDragEnd: (PathWithProperties) -> Unit = {},
   onPencilClick: () -> Unit = {},
   onEraseClick: () -> Unit = {},
   onColorClick: () -> Unit = {},
@@ -266,7 +263,6 @@ private fun CanvasScreen(
         showFrames = showFrames,
         modifier = modifier,
         onDragStart = onDragStart,
-        onDrag = onDrag,
         onDragEnd = onDragEnd,
         onDelayChanged = onDelayChanged,
         onPencilClick = onPencilClick,
@@ -371,9 +367,8 @@ private fun Content(
   copyFrame: () -> Unit,
   showFrames: () -> Unit,
   modifier: Modifier,
-  onDragStart: (Offset) -> Unit,
-  onDrag: (Offset) -> Unit,
-  onDragEnd: () -> Unit,
+  onDragStart: () -> Unit,
+  onDragEnd: (PathWithProperties) -> Unit,
   onDelayChanged: (Float) -> Unit,
   onPencilClick: () -> Unit,
   onEraseClick: () -> Unit,
@@ -419,7 +414,6 @@ private fun Content(
         },
       canvasState = { canvasState },
       onDragStart = onDragStart,
-      onDrag = onDrag,
       onDragEnd = onDragEnd,
     )
 
@@ -578,26 +572,34 @@ private fun BoxScope.Pickers(
 private fun Canvas(
   canvasState: () -> CanvasState,
   modifier: Modifier = Modifier,
-  onDragStart: (Offset) -> Unit = {},
-  onDrag: (Offset) -> Unit = {},
-  onDragEnd: () -> Unit = {},
+  onDragStart: () -> Unit = {},
+  onDragEnd: (PathWithProperties) -> Unit = {},
 ) {
+  val canvasDrawUiState = rememberCanvasDrawState()
+  SideEffect {
+    canvasDrawUiState.editorConfiguration = canvasState().editorConfiguration
+  }
+
   DrawingCanvas(
     paths = {
       canvasState().currentFrame.paths
-    },
-    currentPath = {
-      canvasState().currentFrame.currentPath
     },
     previousPaths = {
       if (canvasState().editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
       canvasState().previousFrame?.paths
     },
     modifier = modifier,
-    onDragStart = onDragStart,
-    onDrag = onDrag,
-    onDragEnd = onDragEnd,
-    onDragCancel = onDragEnd
+    onDragStart = {
+      canvasDrawUiState.startDrawing(it)
+    },
+    onDrag = {
+      canvasDrawUiState.draw(it)
+    },
+    onDragEnd = {
+      canvasDrawUiState.currentPath?.let(onDragEnd)
+      canvasDrawUiState.currentPath = null
+    },
+    canvasDrawUiState = canvasDrawUiState,
   )
 }
 

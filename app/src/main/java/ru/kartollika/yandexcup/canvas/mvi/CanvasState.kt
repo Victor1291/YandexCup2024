@@ -2,7 +2,6 @@ package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.ImmutableList
@@ -35,6 +34,7 @@ data class CanvasState(
 data class PathWithProperties(
   val path: Path,
   val properties: PathProperties,
+  val drawIndex: Int = 0
 )
 
 @Immutable
@@ -58,8 +58,6 @@ typealias Frames = ImmutableList<Frame>
 @Stable
 data class Frame(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
-  val currentPath: PathWithProperties? = null,
-  val lastOffset: Offset = Offset.Unspecified,
   val historyIndex: Int = 0,
   val snapshots: ImmutableList<FrameSnapshot> = persistentListOf(FrameSnapshot()),
 ) {

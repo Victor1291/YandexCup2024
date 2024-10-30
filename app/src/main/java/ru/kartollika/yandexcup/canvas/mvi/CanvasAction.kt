@@ -1,6 +1,5 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import ru.kartollika.yandexcup.canvas.FrameIndex
@@ -8,18 +7,9 @@ import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.mvi2.MVIAction
 
 sealed interface CanvasAction : MVIAction {
-  data object DrawFinish : CanvasAction
-  data class DrawStart(
-    val offset: Offset,
-  ) : CanvasAction
-
-  data class DrawDrag(
-    val offset: Offset,
-  ) : CanvasAction
-
-  data class UpdateOffset(
-    val offset: Offset,
-  ) : CanvasAction
+  // Draw actions
+  data class DrawFinish(val pathWithProperties: PathWithProperties) : CanvasAction
+  data object DrawStart : CanvasAction
 
   data object EraseClick : CanvasAction
   data object PencilClick : CanvasAction
