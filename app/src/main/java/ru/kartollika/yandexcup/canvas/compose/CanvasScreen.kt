@@ -490,7 +490,7 @@ private fun Content(
         .drawBehind {
           drawImage(canvasBackground)
         },
-      canvasState = { canvasState },
+      canvasState = canvasState,
       onDragStart = onDragStart,
       onDragEnd = onDragEnd,
     )
@@ -647,23 +647,23 @@ private fun BoxScope.Pickers(
 
 @Composable
 private fun Canvas(
-  canvasState: () -> CanvasState,
+  canvasState: CanvasState,
   modifier: Modifier = Modifier,
   onDragStart: () -> Unit = {},
   onDragEnd: (PathWithProperties) -> Unit = {},
 ) {
   val canvasDrawUiState = rememberCanvasDrawState()
   SideEffect {
-    canvasDrawUiState.editorConfiguration = canvasState().editorConfiguration
+    canvasDrawUiState.editorConfiguration = canvasState.editorConfiguration
   }
 
   DrawingCanvas(
     paths = {
-      canvasState().currentFrame.paths
+      canvasState.currentFrame.paths
     },
     previousPaths = {
-      if (canvasState().editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
-      canvasState().previousFrame?.paths
+      if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
+      canvasState.previousFrame?.paths
     },
     modifier = modifier,
     onDragStart = {

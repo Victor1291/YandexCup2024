@@ -51,6 +51,9 @@ sealed interface DrawMode {
 
   @Immutable
   data object Erase : DrawMode
+
+  @Immutable
+  data object Move : DrawMode
 }
 
 typealias Frames = ImmutableList<Frame>

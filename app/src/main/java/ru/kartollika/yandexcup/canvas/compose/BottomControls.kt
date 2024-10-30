@@ -28,6 +28,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   onColorClick: () -> Unit = {},
   onBrushSizeClick: () -> Unit = {},
   onShapesClick: () -> Unit = {},
+  onMoveModeClick: () -> Unit = {},
 ) {
   Controls(
     modifier = modifier,
@@ -47,6 +48,12 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         onShapesClick = onShapesClick
       )
     },
+    endControls = {
+      ActionIcon(
+        R.drawable.brush,
+        onClick = onMoveModeClick,
+      )
+    }
   )
 }
 
