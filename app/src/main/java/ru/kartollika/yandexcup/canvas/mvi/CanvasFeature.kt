@@ -1,14 +1,27 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Paint.Style.STROKE
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.toArgb
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
@@ -30,6 +43,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawPath
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ExportToGif
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
@@ -54,13 +68,18 @@ import ru.kartollika.yandexcup.canvas.openBrushPicker
 import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
 import ru.kartollika.yandexcup.canvas.updateEditorConfig
+import ru.kartollika.yandexcup.core.AnimatedGifEncoder
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.mvi2.MVIFeature
+import java.io.File
+import java.io.OutputStream
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
+  @ApplicationContext
+  private val context: Context,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
   override fun initialState(): CanvasState = CanvasState()
 
@@ -126,8 +145,61 @@ class CanvasFeature @Inject constructor(
       OpenShapes -> Unit
       is SelectShape -> drawShape(action.shape)
       is DrawPath -> Unit
+      is ExportToGif -> processExportToGif()
     }
   }
+
+  private suspend fun processExportToGif() =
+    withContext(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
+      println(throwable)
+    }) {
+      val dir = context.getDir("gifDir", Context.MODE_PRIVATE)
+      val file = File(dir, "mygif.gif")
+      val outputStream: OutputStream = file.outputStream()
+
+      val gifEncoder = AnimatedGifEncoder()
+      gifEncoder.start(outputStream)
+
+      withContext(Dispatchers.Default) {
+
+        state.value.frames.forEach { frame ->
+          val bitmap = Bitmap.createBitmap(600, 1000, Bitmap.Config.ARGB_8888)
+          val canvas = Canvas(bitmap)
+
+//          val save = canvas.saveLayer(null, null)
+          frame.paths.forEach { pathWithProperties ->
+            canvas.drawPath(
+              pathWithProperties.path.asAndroidPath(),
+              Paint().apply {
+                strokeWidth = pathWithProperties.properties.brushSize
+                style = STROKE
+                color = if (pathWithProperties.properties.eraseMode) {
+                  android.graphics.Color.TRANSPARENT
+                } else {
+                  pathWithProperties.properties.color.toArgb()
+                }
+                isAntiAlias = true
+                xfermode = if (pathWithProperties.properties.eraseMode) {
+                  PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+                } else {
+                  null
+                }
+              })
+          }
+
+//          canvas.restoreToCount(save)
+          gifEncoder.addFrame(bitmap)
+//          val image = IntArray(600 * 1000)
+//          bitmap.getPixels(image, 0, 600, 0, 0, 600, 1000)
+//          gifEncoder.addImage(image, 600, ImageOptions().apply {
+//            setLeft(0)
+//          })
+        }
+        gifEncoder.finish()
+//        gifEncoder.finishEncoding()
+      }
+      outputStream.close()
+    }
 
   private fun drawShape(shape: Shape) {
     val path = Path()
@@ -374,6 +446,9 @@ class CanvasFeature @Inject constructor(
           }
         ).toImmutableList()
       )
+
+      // TODO Отобразить диалог с лоадером
+      ExportToGif -> state
     }
   }
 }

@@ -174,6 +174,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.SelectShape(shape))
   }
 
+  fun exportToGif() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.ExportToGif)
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -201,7 +205,8 @@ fun CanvasScreen(
     changeBrushSize = remember { ::changeBrushSize },
     onCustomColorClick = remember { ::onCustomColorClick },
     onShapeClick = remember { ::onShapeClick },
-    selectShape = remember { ::selectShape }
+    selectShape = remember { ::selectShape },
+    exportToGif = remember { ::exportToGif }
   )
 }
 
@@ -235,6 +240,7 @@ private fun CanvasScreen(
   onCustomColorClick: () -> Unit = {},
   onShapeClick: () -> Unit = {},
   selectShape: (Shape) -> Unit = {},
+  exportToGif: () -> Unit = {},
 ) {
   BackHandlers(
     canvasState = canvasState,
@@ -267,7 +273,8 @@ private fun CanvasScreen(
         onEraseClick = onEraseClick,
         onColorClick = onColorClick,
         onBrushSizeClick = onBrushSizeClick,
-        onShapeClick = onShapeClick
+        onShapeClick = onShapeClick,
+        exportToGif = exportToGif
       )
 
       Pickers(
@@ -372,7 +379,8 @@ private fun Content(
   onEraseClick: () -> Unit,
   onColorClick: () -> Unit,
   onBrushSizeClick: () -> Unit,
-  onShapeClick: () -> Unit
+  onShapeClick: () -> Unit,
+  exportToGif: () -> Unit,
 ) {
   Column(
     modifier = Modifier.fillMaxSize(),
@@ -422,7 +430,8 @@ private fun Content(
       onEraseClick = onEraseClick,
       onColorClick = onColorClick,
       onBrushSizeClick = onBrushSizeClick,
-      onShapeClick = onShapeClick
+      onShapeClick = onShapeClick,
+      exportToGif = exportToGif
     )
   }
 }
@@ -436,7 +445,8 @@ private fun BottomControls(
   onEraseClick: () -> Unit,
   onColorClick: () -> Unit,
   onBrushSizeClick: () -> Unit,
-  onShapeClick: () -> Unit
+  onShapeClick: () -> Unit,
+  exportToGif: () -> Unit,
 ) {
   Box(
     modifier = Modifier
@@ -467,7 +477,9 @@ private fun BottomControls(
 
         IconButton(
           modifier = Modifier,
-          onClick = {}
+          onClick = {
+            exportToGif()
+          }
         ) {
           Icon(
             imageVector = Icons.Default.Share,

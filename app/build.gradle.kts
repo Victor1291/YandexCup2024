@@ -59,6 +59,7 @@ dependencies {
   implementation(libs.androidx.hilt.navigation.compose)
   implementation(libs.kotlinx.collections.immutable)
   ksp(libs.hilt.compiler)
+  implementation(libs.squareup.gifencoder)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

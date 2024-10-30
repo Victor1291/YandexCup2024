@@ -18,7 +18,7 @@ sealed interface CanvasAction : MVIAction {
   ) : CanvasAction
 
   data class UpdateOffset(
-    val offset: Offset
+    val offset: Offset,
   ) : CanvasAction
 
   data object EraseClick : CanvasAction
@@ -48,4 +48,5 @@ sealed interface CanvasAction : MVIAction {
   data object OpenShapes : CanvasAction
   data class SelectShape(val shape: Shape) : CanvasAction
   data class DrawPath(val path: Path) : CanvasAction
+  data object ExportToGif : CanvasAction
 }
