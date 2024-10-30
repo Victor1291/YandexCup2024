@@ -1,16 +1,15 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateOffset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.kartollika.yandexcup.canvas.DummyPathsGenerator
+import ru.kartollika.yandexcup.canvas.EditorConfigurationParser
 import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
@@ -19,6 +18,9 @@ import ru.kartollika.yandexcup.canvas.addNewFrame
 import ru.kartollika.yandexcup.canvas.copyFrame
 import ru.kartollika.yandexcup.canvas.deleteFrame
 import ru.kartollika.yandexcup.canvas.hidePickers
+import ru.kartollika.yandexcup.canvas.mutateFrames
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
@@ -32,6 +34,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawPath
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ExportToGif
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.GenerateDummyFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
@@ -64,6 +67,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
   private val gifExporter: GifExporter,
+  private val dummyPathsGenerator: DummyPathsGenerator,
+  private val editorConfigurationParser: EditorConfigurationParser,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
   override fun initialState(): CanvasState = CanvasState()
 
@@ -112,6 +117,19 @@ class CanvasFeature @Inject constructor(
       is SelectShape -> drawShape(action.shape)
       is DrawPath -> Unit
       is ExportToGif -> processExportToGif()
+      is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
+      is AddFrames -> Unit
+      is AddFrame -> Unit
+    }
+  }
+
+  private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
+    launch(Dispatchers.Default) {
+      val frames = dummyPathsGenerator.generateFrames(
+        framesCount = framesCount,
+        editorConfiguration = state.value.editorConfiguration
+      )
+      consumeAction(AddFrames(frames))
     }
   }
 
@@ -302,10 +320,8 @@ class CanvasFeature @Inject constructor(
         frames = state.frames.replace(
           replaceIndex = state.currentFrameIndex,
           newItem = { frame ->
-            val properties = PathProperties(
-              color = state.editorConfiguration.color,
-              eraseMode = false,
-              brushSize = state.editorConfiguration.brushSize
+            val properties = getCurrentEditorAsPathProperties(state).copy(
+              eraseMode = false
             )
 
             frame.copy(
@@ -324,6 +340,22 @@ class CanvasFeature @Inject constructor(
 
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
+      is GenerateDummyFrames -> state
+      is AddFrames -> state.copy(
+        frames = state.mutateFrames {
+          addAll(action.frames)
+        }
+      )
+
+      is AddFrame -> state.copy(
+        frames = state.mutateFrames {
+          add(action.frame)
+        }
+      )
     }
+  }
+
+  private fun getCurrentEditorAsPathProperties(state: CanvasState): PathProperties {
+    return editorConfigurationParser.parseToProperties(state.editorConfiguration)
   }
 }

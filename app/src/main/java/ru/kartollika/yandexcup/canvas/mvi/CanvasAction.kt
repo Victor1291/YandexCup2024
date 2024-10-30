@@ -39,4 +39,7 @@ sealed interface CanvasAction : MVIAction {
   data class SelectShape(val shape: Shape) : CanvasAction
   data class DrawPath(val path: Path) : CanvasAction
   data object ExportToGif : CanvasAction
+  data class GenerateDummyFrames(val framesCount: Int) : CanvasAction
+  data class AddFrames(val frames: List<Frame>) : CanvasAction
+  data class AddFrame(val frame: Frame) : CanvasAction
 }

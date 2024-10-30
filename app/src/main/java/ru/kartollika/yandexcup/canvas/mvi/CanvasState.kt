@@ -105,4 +105,5 @@ data class EditorConfiguration(
   val animationDelay: Int = 200,
   val brushSize: Float = 10f,
   val shapesPickerVisible: Boolean = false,
+  val dummyFramesCountInputVisible: Boolean = false,
 )

@@ -1,19 +1,17 @@
 package ru.kartollika.yandexcup.canvas.frames
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,10 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
-import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.mvi.Frames
-import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
@@ -39,26 +35,46 @@ fun FramesScreen(
   selectFrame: (Int) -> Unit = {},
   deleteFrame: (Int) -> Unit = {},
   deleteAllFrames: () -> Unit = {},
+  generateDummyFrames: () -> Unit = {},
 ) {
   Surface(
     modifier = modifier
   ) {
     Column {
-      TextButton(
-        modifier = Modifier
-          .padding(end = 16.dp)
-          .align(Alignment.End),
-        onClick = {
-          deleteAllFrames()
-        }
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
       ) {
-        Text("Удалить кадры", color = Color.Red)
-      }
+        TextButton(
+          modifier = Modifier
+            .padding(end = 16.dp),
+          onClick = {
+            generateDummyFrames()
+          }
+        ) {
+          Text(
+            text = "Создать dummy кадры",
+            color = MaterialTheme.colorScheme.primary
+          )
+        }
 
+        TextButton(
+          modifier = Modifier
+            .padding(end = 16.dp),
+          onClick = {
+            deleteAllFrames()
+          }
+        ) {
+          Text(
+            text = "Удалить кадры",
+            color = Color.Red
+          )
+        }
+      }
       LazyColumn(
         modifier = Modifier.fillMaxSize()
       ) {
-        itemsIndexed(frames) { index, frame ->
+        itemsIndexed(frames, key = { index, item -> index}) { index, frame ->
           FrameItem(
             modifier = Modifier
               .fillMaxWidth()
@@ -90,7 +106,7 @@ fun FrameItem(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(16.dp)
   ) {
-    DrawingCanvas(
+    /*DrawingCanvas(
       paths = {
         frame.paths
       },
@@ -107,7 +123,7 @@ fun FrameItem(
       // TODO Вычислить программно этот скейл
       scale = 0.16f,
       canvasDrawUiState = rememberCanvasDrawState()
-    )
+    )*/
 
     Text(
       text = "Кадр $index",
