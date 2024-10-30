@@ -58,18 +58,18 @@ private fun AnimationButtons(
   startAnimation: () -> Unit,
 ) {
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.pause,
     onClick = stopAnimation,
+    modifier = Modifier
+      .size(32.dp),
     enabled = editorConfiguration.isPreviewAnimation,
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.play,
     onClick = startAnimation,
+    modifier = Modifier
+      .size(32.dp),
     enabled = !editorConfiguration.isPreviewAnimation,
   )
 }
@@ -84,31 +84,31 @@ private fun FramesButtons(
 ) {
   if (editorConfiguration.isPreviewAnimation) return
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.bin,
     onClick = deleteFrame,
+    modifier = Modifier
+      .size(32.dp),
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.file_add,
     onClick = addFrame,
+    modifier = Modifier
+      .size(32.dp),
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.layers,
     onClick = showFrames,
+    modifier = Modifier
+      .size(32.dp),
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.file_plus,
     onClick = copyFrame,
+    modifier = Modifier
+      .size(32.dp),
   )
 }
 
@@ -122,18 +122,18 @@ private fun UndoRedoButtons(
 ) {
   if (editorConfiguration.isPreviewAnimation) return
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.undo,
     onClick = undoChange,
+    modifier = Modifier
+      .size(32.dp),
     enabled = canUndo,
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.redo,
     onClick = redoChange,
+    modifier = Modifier
+      .size(32.dp),
     enabled = canRedo,
   )
 }

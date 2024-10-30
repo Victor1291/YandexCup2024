@@ -92,10 +92,10 @@ private fun EditorButtons(
   onShapesClick: () -> Unit = {},
 ) {
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.pencil,
     onClick = onPencilClick,
+    modifier = Modifier
+      .size(32.dp),
     tint = if (editorConfiguration.currentMode == Pencil) {
       MaterialTheme.colorScheme.primary
     } else {
@@ -104,10 +104,10 @@ private fun EditorButtons(
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.erase,
     onClick = onEraseClick,
+    modifier = Modifier
+      .size(32.dp),
     tint = if (editorConfiguration.currentMode == Erase) {
       MaterialTheme.colorScheme.primary
     } else {
@@ -116,10 +116,10 @@ private fun EditorButtons(
   )
 
   ActionIcon(
-    modifier = Modifier
-      .size(32.dp),
     icon = R.drawable.instruments,
     onClick = onShapesClick,
+    modifier = Modifier
+      .size(32.dp),
   )
 
   Spacer(
