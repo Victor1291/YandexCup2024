@@ -10,7 +10,7 @@ import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
 data class CanvasState(
-  val frames: Frames = persistentListOf(RealFrame()),
+  val frames: Frames = persistentListOf(Frame()),
   val currentFrameIndex: Int = 0,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
@@ -55,12 +55,12 @@ sealed interface DrawMode {
   data object Erase : DrawMode
 
   @Immutable
-  data object Move : DrawMode
+  data object Transform : DrawMode
 }
 
 typealias Frames = ImmutableList<Frame>
 
-sealed interface Frame {
+/*sealed interface Frame {
   val paths: ImmutableList<PathWithProperties>?
   val previousSnapshot: FrameSnapshot?
   val nextSnapshot: FrameSnapshot?
@@ -68,9 +68,9 @@ sealed interface Frame {
   val snapshots: ImmutableList<FrameSnapshot>?
 
   fun materialize(): RealFrame
-}
+}*/
 
-data object GhostFrame: Frame {
+/*data object GhostFrame: Frame {
 
   private val creator: () -> RealFrame = { RealFrame() }
 
@@ -86,24 +86,22 @@ data object GhostFrame: Frame {
       snapshots = persistentListOf(FrameSnapshot())
     )
   }
-}
+}*/
 
 @Immutable
-data class RealFrame(
-  override val paths: ImmutableList<PathWithProperties>? = persistentListOf(),
-  override val historyIndex: Int = 0,
-  override val snapshots: ImmutableList<FrameSnapshot>? = persistentListOf(FrameSnapshot()),
-) : Frame {
-  override val previousSnapshot: FrameSnapshot?
+data class Frame(
+  val paths: ImmutableList<PathWithProperties>? = persistentListOf(),
+  val historyIndex: Int = 0,
+  val snapshots: ImmutableList<FrameSnapshot>? = persistentListOf(FrameSnapshot()),
+) {
+  val previousSnapshot: FrameSnapshot?
     get() = snapshots?.getOrNull(historyIndex - 1)
 
-  override val nextSnapshot: FrameSnapshot?
+  val nextSnapshot: FrameSnapshot?
     get() = snapshots?.getOrNull(historyIndex + 1)
-
-  override fun materialize(): RealFrame = this
 }
 
-fun RealFrame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
+fun Frame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
   paths = snapshot.paths,
   historyIndex = snapshot.snapshotIndex
 )

@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import ru.kartollika.yandexcup.canvas.CanvasMode.Draw
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
@@ -25,7 +26,7 @@ fun rememberCanvasDrawState(
 
 enum class CanvasMode {
   Draw,
-  Move,
+  Transform,
 }
 
 @Stable
@@ -70,5 +71,16 @@ class CanvasDrawUiState {
         drawIndex = currentPath.drawIndex + 1
       )
     }
+  }
+
+  fun transform(matrix: Matrix) {
+    val currentPath = currentPath ?: return
+
+    this.currentPath = currentPath.copy(
+      path = currentPath.path.apply {
+        transform(matrix)
+      },
+      drawIndex = currentPath.drawIndex + 1
+    )
   }
 }

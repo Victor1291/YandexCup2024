@@ -3,7 +3,6 @@ package ru.kartollika.yandexcup.canvas
 import androidx.compose.ui.graphics.Path
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 import ru.kartollika.yandexcup.canvas.mvi.Frame
-import ru.kartollika.yandexcup.canvas.mvi.GhostFrame
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 import javax.inject.Inject
 import kotlin.random.Random
@@ -17,7 +16,7 @@ class DummyPathsGenerator @Inject constructor(
   ): Collection<Frame> {
     val frames = mutableListOf<Frame>()
     for (i in 0 until framesCount) {
-      val frame = GhostFrame
+      val frame = Frame()
       frames.add(frame)
     }
     return frames

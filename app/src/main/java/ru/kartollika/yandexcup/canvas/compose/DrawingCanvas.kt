@@ -16,9 +16,20 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.collections.immutable.ImmutableList
 import ru.kartollika.yandexcup.canvas.CanvasDrawUiState
+import ru.kartollika.yandexcup.canvas.CanvasMode.Transform
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 
+fun interface OnTransform {
+  operator fun invoke(
+    centroid: Offset,
+    pan: Offset,
+    zoom: Float,
+    rotation: Float,
+  )
+}
+
 @Composable
+
 @NonRestartableComposable
 fun DrawingCanvas(
   paths: () -> ImmutableList<PathWithProperties>?,
@@ -30,14 +41,20 @@ fun DrawingCanvas(
   onDragCancel: () -> Unit = {},
   onDrag: (Offset) -> Unit = {},
   scale: Float = 1f,
+  onTransform: OnTransform = OnTransform { centroid, pan, zoom, rotation -> },
 ) {
   val drawModifier = Modifier
-    .pointerInput(Unit) {
-      detectTransformGestures(panZoomLock = true) { centroid, pan, zoom, rotation ->
-        println("$centroid $pan $zoom $rotation")
+//    .transformable()
+    .pointerInput(canvasDrawUiState.mode) {
+      if (canvasDrawUiState.mode == Transform) {
+        detectTransformGestures(true) { centroid, pan, zoom, rotation ->
+          onTransform(centroid, pan, zoom, rotation)
+          println("$centroid $pan $zoom $rotation")
+        }
       }
     }
     .pointerInput(canvasDrawUiState.mode) {
+      if (canvasDrawUiState.mode == Transform) return@pointerInput
       detectDragGestures(
         onDragStart = { onDragStart(it) },
         onDragEnd = { onDragEnd() },

@@ -8,7 +8,6 @@ import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode
 import ru.kartollika.yandexcup.canvas.mvi.Frame
-import ru.kartollika.yandexcup.canvas.mvi.RealFrame
 
 fun CanvasState.mutateFrames(block: MutableList<Frame>.() -> Unit) =
   frames.toMutableList().apply(block).toImmutableList()
@@ -16,18 +15,16 @@ fun CanvasState.mutateFrames(block: MutableList<Frame>.() -> Unit) =
 fun CanvasState.copyFrame() = copy(
   frames = mutateFrames {
     add(
-      currentFrame
-        .materialize()
-        .copy(
-          snapshots = persistentListOf(),
-        )
+      currentFrame.copy(
+        snapshots = persistentListOf(),
+      )
     )
   },
   currentFrameIndex = frames.lastIndex + 1
 )
 
 fun CanvasState.addNewFrame(): CanvasState {
-  val newFrame = RealFrame()
+  val newFrame = Frame()
   return copy(
     frames = mutateFrames {
       add(newFrame)
@@ -39,7 +36,7 @@ fun CanvasState.addNewFrame(): CanvasState {
 fun CanvasState.deleteFrame(frameIndex: FrameIndex): CanvasState {
   return if (frames.size == 1) {
     copy(
-      frames = persistentListOf(RealFrame()),
+      frames = persistentListOf(Frame()),
       currentFrameIndex = 0
     )
   } else {

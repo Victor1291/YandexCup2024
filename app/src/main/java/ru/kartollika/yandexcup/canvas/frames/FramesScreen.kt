@@ -26,7 +26,6 @@ import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.mvi.Frames
-import ru.kartollika.yandexcup.canvas.mvi.RealFrame
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
@@ -152,7 +151,7 @@ private fun FramesScreenPreview() {
   YandexCup2024Theme {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
-      frames = persistentListOf(RealFrame())
+      frames = persistentListOf(Frame())
     )
   }
 }

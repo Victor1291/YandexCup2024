@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 
 @Composable fun BottomControls(
@@ -28,7 +29,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   onColorClick: () -> Unit = {},
   onBrushSizeClick: () -> Unit = {},
   onShapesClick: () -> Unit = {},
-  onMoveModeClick: () -> Unit = {},
+  onTransformModeClick: () -> Unit = {},
 ) {
   Controls(
     modifier = modifier,
@@ -50,8 +51,13 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
     },
     endControls = {
       ActionIcon(
-        R.drawable.brush,
-        onClick = onMoveModeClick,
+        R.drawable.hand,
+        onClick = onTransformModeClick,
+        tint = if (editorConfiguration.currentMode == Transform) {
+          MaterialTheme.colorScheme.primary
+        } else {
+          MaterialTheme.colorScheme.onSurface
+        }
       )
     }
   )

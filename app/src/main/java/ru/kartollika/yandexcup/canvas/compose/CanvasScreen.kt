@@ -53,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,6 +62,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.CanvasMode
+import ru.kartollika.yandexcup.canvas.CanvasMode.Draw
 import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
 import ru.kartollika.yandexcup.canvas.Shape
@@ -74,10 +77,15 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
+import kotlin.math.cos
+import kotlin.math.sin
 import ru.kartollika.yandexcup.components.Slider as YandexcupComponentsSlider
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -193,6 +201,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.GenerateDummyFrames(framesCount))
   }
 
+  fun onTransformModeClick() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.TransformModeClick)
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -221,7 +233,8 @@ fun CanvasScreen(
     onShapeClick = remember { ::onShapeClick },
     selectShape = remember { ::selectShape },
     exportToGif = remember { ::exportToGif },
-    confirmGenerateDummyFrames = remember { ::confirmGenerateDummyFrames }
+    confirmGenerateDummyFrames = remember { ::confirmGenerateDummyFrames },
+    onTransformModeClick = remember { ::onTransformModeClick }
   )
 }
 
@@ -256,6 +269,7 @@ private fun CanvasScreen(
   selectShape: (Shape) -> Unit = {},
   exportToGif: () -> Unit = {},
   confirmGenerateDummyFrames: (Int) -> Unit = {},
+  onTransformModeClick: () -> Unit = {},
 ) {
   BackHandlers(
     canvasState = canvasState,
@@ -288,7 +302,8 @@ private fun CanvasScreen(
         onColorClick = onColorClick,
         onBrushSizeClick = onBrushSizeClick,
         onShapeClick = onShapeClick,
-        exportToGif = exportToGif
+        exportToGif = exportToGif,
+        onTransformModeClick = onTransformModeClick,
       )
 
       Pickers(
@@ -454,6 +469,7 @@ private fun Content(
   onBrushSizeClick: () -> Unit,
   onShapeClick: () -> Unit,
   exportToGif: () -> Unit,
+  onTransformModeClick: () -> Unit,
 ) {
   Column(
     modifier = Modifier.fillMaxSize(),
@@ -503,7 +519,8 @@ private fun Content(
       onColorClick = onColorClick,
       onBrushSizeClick = onBrushSizeClick,
       onShapeClick = onShapeClick,
-      exportToGif = exportToGif
+      exportToGif = exportToGif,
+      onTransformModeClick = onTransformModeClick
     )
   }
 }
@@ -519,6 +536,7 @@ private fun BottomControls(
   onBrushSizeClick: () -> Unit,
   onShapeClick: () -> Unit,
   exportToGif: () -> Unit,
+  onTransformModeClick: () -> Unit,
 ) {
   Box(
     modifier = Modifier
@@ -569,7 +587,8 @@ private fun BottomControls(
         onEraseClick = onEraseClick,
         onColorClick = onColorClick,
         onBrushSizeClick = onBrushSizeClick,
-        onShapesClick = onShapeClick
+        onShapesClick = onShapeClick,
+        onTransformModeClick = onTransformModeClick
       )
     }
   }
@@ -657,9 +676,22 @@ private fun Canvas(
     canvasDrawUiState.editorConfiguration = canvasState.editorConfiguration
   }
 
+  SideEffect {
+    canvasDrawUiState.mode = when (canvasState.editorConfiguration.currentMode) {
+      Erase -> Draw
+      Pencil -> Draw
+      Transform -> CanvasMode.Transform
+    }
+  }
+
+  SideEffect {
+    canvasDrawUiState.currentPath = canvasState.currentFrame.paths?.lastOrNull()
+  }
+
   DrawingCanvas(
     paths = {
-      canvasState.currentFrame.paths
+      val paths = canvasState.currentFrame.paths ?: return@DrawingCanvas null
+      paths.subList(0, (paths.size).coerceAtLeast(0))
     },
     previousPaths = {
       if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
@@ -675,9 +707,23 @@ private fun Canvas(
     },
     onDragEnd = {
       canvasDrawUiState.currentPath?.let(onDragEnd)
-      canvasDrawUiState.currentPath = null
     },
     canvasDrawUiState = canvasDrawUiState,
+    onTransform = { centroid, pan, zoom, rotation ->
+      val matrix = Matrix().apply {
+        val cos = cos(Math.toRadians(rotation.toDouble()))
+        val sin = sin(Math.toRadians(rotation.toDouble()))
+
+        this.translate(
+          x = (centroid.x * (1f - zoom) + (1 - cos) + centroid.y * sin).toFloat(),
+          y = (centroid.y * (1f - zoom) + (1 - cos) - centroid.x * sin).toFloat()
+        )
+        this.scale(zoom, zoom)
+        this.rotateZ(rotation)
+        this.translate(pan.x, pan.y)
+      }
+      canvasDrawUiState.transform(matrix)
+    },
   )
 }
 
