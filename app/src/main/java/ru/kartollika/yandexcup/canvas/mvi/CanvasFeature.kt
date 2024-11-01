@@ -1,7 +1,6 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import android.util.Log
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -10,6 +9,7 @@ import kotlinx.coroutines.launch
 import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.canvas.addNewFrame
 import ru.kartollika.yandexcup.canvas.copyFrame
+import ru.kartollika.yandexcup.canvas.deleteAllFrames
 import ru.kartollika.yandexcup.canvas.deleteFrame
 import ru.kartollika.yandexcup.canvas.hidePickers
 import ru.kartollika.yandexcup.canvas.mutateFrames
@@ -291,10 +291,7 @@ class CanvasFeature @Inject constructor(
         framesSheetVisible = false
       )
 
-      DeleteAllFrames -> state.copy(
-        frames = persistentListOf(Frame()),
-        currentFrameIndex = 0
-      )
+      DeleteAllFrames -> state.deleteAllFrames()
 
       is ShowColorPicker -> state.openColorPicker()
       is ShowBrushSizePicker -> {
@@ -359,7 +356,7 @@ class CanvasFeature @Inject constructor(
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
       is GenerateDummyFrames -> state.copy(
-        framesCount = state.framesCount + action.framesCount
+        maxFramesCount = state.framesCount + action.framesCount
       )
 
       is AddFrames -> state.copy(

@@ -31,12 +31,17 @@ fun CanvasState.addNewFrame(): CanvasState {
   )
 }
 
+fun CanvasState.deleteAllFrames(): CanvasState {
+  return copy(
+    frames = persistentListOf(Frame()),
+    currentFrameIndex = 0,
+    maxFramesCount = 1
+  )
+}
+
 fun CanvasState.deleteFrame(frameIndex: FrameIndex): CanvasState {
   return if (frames.size == 1) {
-    copy(
-      frames = persistentListOf(Frame()),
-      currentFrameIndex = 0
-    )
+    deleteAllFrames()
   } else {
     val indexToRemove = when (frameIndex) {
       is Current -> currentFrameIndex
@@ -46,7 +51,8 @@ fun CanvasState.deleteFrame(frameIndex: FrameIndex): CanvasState {
       frames = mutateFrames {
         removeAt(indexToRemove)
       },
-      currentFrameIndex = frames.lastIndex - 1
+      currentFrameIndex = frames.lastIndex - 1,
+      maxFramesCount = maxFramesCount - 1
     )
   }
 }

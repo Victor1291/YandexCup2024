@@ -6,15 +6,23 @@ import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.mvi2.MVIState
+import kotlin.math.max
 
 @Immutable
 data class CanvasState(
   val frames: Frames = persistentListOf(Frame()),
   val currentFrameIndex: Int = 0,
-  val framesCount: Int = 1,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
+  val maxFramesCount: Int = 1,
 ) : MVIState {
+
+  /**
+   * Current count of frames
+   * frames.size is actual and real frames
+   * maxFramesCount may be a higher value because it imitates ghost frames for better performance
+   */
+  val framesCount = max(frames.size, maxFramesCount)
 
   val canUndo: Boolean
     get() = currentFrame.paths.isNotEmpty()
