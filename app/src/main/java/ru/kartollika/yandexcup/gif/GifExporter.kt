@@ -44,7 +44,7 @@ class GifExporter @Inject constructor(
           val canvas = Canvas(bitmap)
 
 //          val save = canvas.saveLayer(null, null)
-          frame.paths.forEach { pathWithProperties ->
+          frame.paths?.forEach { pathWithProperties ->
             canvas.drawPath(
               pathWithProperties.path.asAndroidPath(),
               Paint().apply {

@@ -21,8 +21,7 @@ import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 @Composable
 @NonRestartableComposable
 fun DrawingCanvas(
-  paths: () -> ImmutableList<PathWithProperties>,
-//  currentPath: () -> PathWithProperties?,
+  paths: () -> ImmutableList<PathWithProperties>?,
   previousPaths: () -> ImmutableList<PathWithProperties>?,
   modifier: Modifier = Modifier,
   canvasDrawUiState: CanvasDrawUiState,
@@ -38,7 +37,7 @@ fun DrawingCanvas(
         println("$centroid $pan $zoom $rotation")
       }
     }
-    .pointerInput(Unit) {
+    .pointerInput(canvasDrawUiState.mode) {
       detectDragGestures(
         onDragStart = { onDragStart(it) },
         onDragEnd = { onDragEnd() },
@@ -73,7 +72,7 @@ fun DrawingCanvas(
     scale(scale, scale, pivot = Offset(0f, 0f)) {
       with(drawContext.canvas.nativeCanvas) {
         val checkPoint = saveLayer(null, null)
-        paths().forEach { pathWithProperties ->
+        paths()?.forEach { pathWithProperties ->
           drawPath(
             path = pathWithProperties.path,
             color = pathWithProperties.properties.color,

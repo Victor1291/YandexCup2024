@@ -1,13 +1,9 @@
 package ru.kartollika.yandexcup.canvas
 
 import androidx.compose.ui.graphics.Path
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 import ru.kartollika.yandexcup.canvas.mvi.Frame
+import ru.kartollika.yandexcup.canvas.mvi.GhostFrame
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 import javax.inject.Inject
 import kotlin.random.Random
@@ -15,23 +11,16 @@ import kotlin.random.Random
 class DummyPathsGenerator @Inject constructor(
   private val editorConfigurationParser: EditorConfigurationParser,
 ) {
-  suspend fun generateFrames(
+  fun generateFrames(
     framesCount: Int,
     editorConfiguration: EditorConfiguration,
-  ): List<Frame> = coroutineScope {
-    val framesDeferred = mutableListOf<Deferred<Frame>>()
+  ): Collection<Frame> {
+    val frames = mutableListOf<Frame>()
     for (i in 0 until framesCount) {
-      val async = async {
-        val paths = generateRandomPaths(editorConfiguration)
-
-        Frame(
-          paths = paths.toImmutableList()
-        )
-      }
-      framesDeferred.add(async)
+      val frame = GhostFrame
+      frames.add(frame)
     }
-
-    return@coroutineScope framesDeferred.awaitAll()
+    return frames
   }
 
   private fun generateRandomPaths(editorConfiguration: EditorConfiguration): List<PathWithProperties> {

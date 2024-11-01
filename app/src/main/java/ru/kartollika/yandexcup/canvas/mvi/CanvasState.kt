@@ -1,7 +1,6 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.ImmutableList
@@ -11,7 +10,7 @@ import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
 data class CanvasState(
-  val frames: Frames = persistentListOf(Frame()),
+  val frames: Frames = persistentListOf(RealFrame()),
   val currentFrameIndex: Int = 0,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
@@ -21,7 +20,10 @@ data class CanvasState(
     get() = currentFrame.historyIndex > 0
 
   val canRedo: Boolean
-    get() = currentFrame.historyIndex < currentFrame.snapshots.lastIndex
+    get() {
+      val snapshots = currentFrame.snapshots ?: return false
+      return currentFrame.historyIndex < snapshots.lastIndex
+    }
 
   val currentFrame: Frame
     get() = frames[currentFrameIndex]
@@ -34,7 +36,7 @@ data class CanvasState(
 data class PathWithProperties(
   val path: Path,
   val properties: PathProperties,
-  val drawIndex: Int = 0
+  val drawIndex: Int = 0,
 )
 
 @Immutable
@@ -58,20 +60,50 @@ sealed interface DrawMode {
 
 typealias Frames = ImmutableList<Frame>
 
-@Stable
-data class Frame(
-  val paths: ImmutableList<PathWithProperties> = persistentListOf(),
-  val historyIndex: Int = 0,
-  val snapshots: ImmutableList<FrameSnapshot> = persistentListOf(FrameSnapshot()),
-) {
+sealed interface Frame {
+  val paths: ImmutableList<PathWithProperties>?
   val previousSnapshot: FrameSnapshot?
-    get() = snapshots.getOrNull(historyIndex - 1)
-
   val nextSnapshot: FrameSnapshot?
-    get() = snapshots.getOrNull(historyIndex + 1)
+  val historyIndex: Int
+  val snapshots: ImmutableList<FrameSnapshot>?
+
+  fun materialize(): RealFrame
 }
 
-fun Frame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
+data object GhostFrame: Frame {
+
+  private val creator: () -> RealFrame = { RealFrame() }
+
+  override val paths: ImmutableList<PathWithProperties>? = null
+  override val historyIndex: Int = 0
+  override val snapshots: ImmutableList<FrameSnapshot>? = null
+  override val previousSnapshot: FrameSnapshot? = null
+  override val nextSnapshot: FrameSnapshot? = null
+
+  override fun materialize(): RealFrame {
+    return creator().copy(
+      paths = persistentListOf(),
+      snapshots = persistentListOf(FrameSnapshot())
+    )
+  }
+}
+
+@Immutable
+data class RealFrame(
+  override val paths: ImmutableList<PathWithProperties>? = persistentListOf(),
+  override val historyIndex: Int = 0,
+  override val snapshots: ImmutableList<FrameSnapshot>? = persistentListOf(FrameSnapshot()),
+) : Frame {
+  override val previousSnapshot: FrameSnapshot?
+    get() = snapshots?.getOrNull(historyIndex - 1)
+
+  override val nextSnapshot: FrameSnapshot?
+    get() = snapshots?.getOrNull(historyIndex + 1)
+
+  override fun materialize(): RealFrame = this
+}
+
+fun RealFrame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
   paths = snapshot.paths,
   historyIndex = snapshot.snapshotIndex
 )
@@ -84,7 +116,7 @@ fun ImmutableList<FrameSnapshot>.pushSnapshot(frame: Frame): ImmutableList<Frame
   return toMutableList().apply {
     add(
       FrameSnapshot(
-        paths = frame.paths,
+        paths = frame.paths!!,
         snapshotIndex = frame.historyIndex + 1
       )
     )

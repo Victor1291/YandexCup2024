@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import ru.kartollika.yandexcup.canvas.CanvasMode.Draw
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 import ru.kartollika.yandexcup.canvas.mvi.PathProperties
@@ -22,11 +23,18 @@ fun rememberCanvasDrawState(
   }
 }
 
+enum class CanvasMode {
+  Draw,
+  Move,
+}
+
 @Stable
 class CanvasDrawUiState {
   var editorConfiguration by mutableStateOf(EditorConfiguration())
   var currentPath by mutableStateOf<PathWithProperties?>(null)
-  var lastOffset: Offset = Offset.Unspecified
+  var mode by mutableStateOf<CanvasMode>(Draw)
+
+  private var lastOffset: Offset = Offset.Unspecified
 
   fun startDrawing(offset: Offset) {
     val path = Path()

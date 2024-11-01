@@ -26,6 +26,7 @@ import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.mvi.Frames
+import ru.kartollika.yandexcup.canvas.mvi.RealFrame
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
@@ -42,7 +43,9 @@ fun FramesScreen(
   ) {
     Column {
       Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
       ) {
         TextButton(
@@ -59,8 +62,7 @@ fun FramesScreen(
         }
 
         TextButton(
-          modifier = Modifier
-            .padding(end = 16.dp),
+          modifier = Modifier,
           onClick = {
             deleteAllFrames()
           }
@@ -150,7 +152,7 @@ private fun FramesScreenPreview() {
   YandexCup2024Theme {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
-      frames = persistentListOf(Frame())
+      frames = persistentListOf(RealFrame())
     )
   }
 }

@@ -1,5 +1,6 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
+import android.util.Log
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.persistentListOf
@@ -19,7 +20,6 @@ import ru.kartollika.yandexcup.canvas.copyFrame
 import ru.kartollika.yandexcup.canvas.deleteFrame
 import ru.kartollika.yandexcup.canvas.hidePickers
 import ru.kartollika.yandexcup.canvas.mutateFrames
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
@@ -117,17 +117,33 @@ class CanvasFeature @Inject constructor(
       is ExportToGif -> processExportToGif()
       is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
       is AddFrames -> Unit
-      is AddFrame -> Unit
     }
   }
 
   private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
     launch(Dispatchers.Default) {
-      val frames = dummyPathsGenerator.generateFrames(
-        framesCount = framesCount,
-        editorConfiguration = state.value.editorConfiguration
-      )
-      consumeAction(AddFrames(frames))
+      var processed = 0
+
+      try {
+        (0 until framesCount)
+          .asSequence()
+          .chunked(1000000)
+          .map { it.size }
+          .forEach { chunkSize ->
+            val frames = dummyPathsGenerator.generateFrames(
+              framesCount = chunkSize,
+              editorConfiguration = state.value.editorConfiguration
+            )
+            consumeAction(AddFrames(frames))
+            processed += chunkSize
+            println("dummy creator: processed $processed")
+          }
+      } catch (e: Exception) {
+        Log.e("dummy creator", "Error", e)
+        println("dummy creator: processed with error $processed")
+      }
+
+      println("dummy creator: processed $processed")
     }
   }
 
@@ -177,26 +193,29 @@ class CanvasFeature @Inject constructor(
     return when (action) {
       is DrawStart -> state.hidePickers()
       is DrawFinish -> {
-        val paths = state.currentFrame.paths.toMutableList().apply {
-          action.pathWithProperties.let(this::add)
-        }.toImmutableList()
-
         state.copy(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              val newFrame = frame.copy(
-                paths = paths,
+            newItem = { frame: Frame ->
+              var newFrame = frame
+                .materialize()
+
+              val paths = newFrame.paths!!.toMutableList().apply {
+                action.pathWithProperties.let(this::add)
+              }.toImmutableList()
+
+              newFrame = newFrame.copy(
+                paths = paths
               )
 
               newFrame.copy(
-                historyIndex = frame.historyIndex + 1,
-                snapshots = frame.snapshots
-                  .dropSnapshotsStartingFrom(frame.historyIndex + 1)
-                  .pushSnapshot(newFrame),
+                historyIndex = newFrame.historyIndex + 1,
+                snapshots = newFrame.snapshots
+                  ?.dropSnapshotsStartingFrom(newFrame.historyIndex + 1)
+                  ?.pushSnapshot(newFrame),
               )
             }
-          ).toImmutableList(),
+          ).toImmutableList()
         )
       }
 
@@ -217,12 +236,15 @@ class CanvasFeature @Inject constructor(
       UndoChange -> {
         val previousSnapshot = state.currentFrame.previousSnapshot ?: return state
         state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              frame.restoreSnapshot(previousSnapshot)
-            }
-          ).toImmutableList(),
+          frames = state.mutateFrames {
+            replace(
+              replaceIndex = state.currentFrameIndex,
+              newItem = { frame ->
+                (frame as RealFrame).restoreSnapshot(previousSnapshot)
+              }
+
+            )
+          }
         )
       }
 
@@ -230,12 +252,14 @@ class CanvasFeature @Inject constructor(
         val nextSnapshot = state.currentFrame.nextSnapshot ?: return state
 
         state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              frame.restoreSnapshot(nextSnapshot)
-            }
-          ).toImmutableList(),
+          frames = state.mutateFrames {
+            replace(
+              replaceIndex = state.currentFrameIndex,
+              newItem = { frame ->
+                (frame as RealFrame).restoreSnapshot(nextSnapshot)
+              }
+            )
+          },
         )
       }
 
@@ -283,7 +307,7 @@ class CanvasFeature @Inject constructor(
       )
 
       DeleteAllFrames -> state.copy(
-        frames = persistentListOf(Frame()),
+        frames = persistentListOf(RealFrame()),
         currentFrameIndex = 0
       )
 
@@ -328,12 +352,6 @@ class CanvasFeature @Inject constructor(
       is AddFrames -> state.copy(
         frames = state.mutateFrames {
           addAll(action.frames)
-        }
-      )
-
-      is AddFrame -> state.copy(
-        frames = state.mutateFrames {
-          add(action.frame)
         }
       )
     }

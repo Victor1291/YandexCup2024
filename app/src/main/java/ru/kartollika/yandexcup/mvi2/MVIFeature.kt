@@ -1,5 +1,6 @@
 package ru.kartollika.yandexcup.mvi2
 
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -80,5 +81,9 @@ abstract class MVIFeature<State : MVIState, Action : MVIAction, Event : MVIEvent
 }
 
 val defaultExceptionHandler by lazy {
-  CoroutineExceptionHandler { _, throwable -> println("Uncaught exception: $throwable") }
+  CoroutineExceptionHandler { _, throwable ->
+    Log.e(
+      "MVIFeature", "Uncaught exception: $throwable", throwable
+    )
+  }
 }
