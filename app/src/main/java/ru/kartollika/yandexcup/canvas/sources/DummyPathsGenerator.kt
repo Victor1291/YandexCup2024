@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas
+package ru.kartollika.yandexcup.canvas.sources
 
 import androidx.compose.ui.graphics.Path
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration

@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas
+package ru.kartollika.yandexcup.canvas.sources
 
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration

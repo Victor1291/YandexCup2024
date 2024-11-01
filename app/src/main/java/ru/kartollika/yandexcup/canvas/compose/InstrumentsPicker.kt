@@ -1,23 +1,20 @@
 package ru.kartollika.yandexcup.canvas.compose
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.Shape
+import ru.kartollika.yandexcup.canvas.Shape.Arrow
 import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
+import ru.kartollika.yandexcup.canvas.Shape.Straight
 import ru.kartollika.yandexcup.canvas.Shape.Triangle
 
 @Composable
@@ -32,48 +29,56 @@ fun InstrumentsPicker(
       Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        Icon(
+        ActionIcon(
           modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .padding(2.dp)
-            .clickable { selectShape(Square) },
-          painter = painterResource(R.drawable.square),
-          contentDescription = null,
+            .size(32.dp),
+          onClick = {
+            selectShape(Square)
+          },
+          icon = R.drawable.square,
           tint = Color.White,
         )
 
-        Icon(
+        ActionIcon(
           modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .padding(2.dp)
-            .clickable { selectShape(Circle) },
-          painter = painterResource(R.drawable.circle),
-          contentDescription = null,
+            .size(32.dp),
+          onClick = {
+            selectShape(Circle)
+          },
+          icon = R.drawable.circle,
           tint = Color.White,
         )
 
-        Icon(
+        ActionIcon(
           modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .padding(2.dp)
-            .clickable { selectShape(Triangle) },
-          painter = painterResource(R.drawable.triangle),
-          contentDescription = null,
+            .size(32.dp),
+          onClick = {
+            selectShape(Triangle)
+          },
+          icon = R.drawable.triangle,
           tint = Color.White,
         )
 
-        /*Icon(
+        ActionIcon(
+          modifier = Modifier
+            .size(32.dp),
+          onClick = {
+            selectShape(Arrow)
+          },
+          icon = R.drawable.arrow_up,
+          tint = Color.White,
+        )
+
+        ActionIcon(
           modifier = Modifier
             .size(32.dp)
-            .clip(CircleShape)
-            .clickable { selectShape(Arrow) },
-          painter = painterResource(R.drawable.arrow_up),
-          contentDescription = null,
+            .rotate(-45f),
+          onClick = {
+            selectShape(Straight)
+          },
+          icon = R.drawable.straight,
           tint = Color.White,
-        )*/
+        )
       }
     }
   }

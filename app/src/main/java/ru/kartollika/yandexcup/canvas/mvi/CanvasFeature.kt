@@ -1,20 +1,13 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import android.util.Log
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ru.kartollika.yandexcup.canvas.DummyPathsGenerator
-import ru.kartollika.yandexcup.canvas.EditorConfigurationParser
 import ru.kartollika.yandexcup.canvas.Shape
-import ru.kartollika.yandexcup.canvas.Shape.Circle
-import ru.kartollika.yandexcup.canvas.Shape.Square
-import ru.kartollika.yandexcup.canvas.Shape.Triangle
 import ru.kartollika.yandexcup.canvas.addNewFrame
 import ru.kartollika.yandexcup.canvas.copyFrame
 import ru.kartollika.yandexcup.canvas.deleteFrame
@@ -58,6 +51,9 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
 import ru.kartollika.yandexcup.canvas.openBrushPicker
 import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
+import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator
+import ru.kartollika.yandexcup.canvas.sources.EditorConfigurationParser
+import ru.kartollika.yandexcup.canvas.sources.ShapeDrawer
 import ru.kartollika.yandexcup.canvas.updateEditorConfig
 import ru.kartollika.yandexcup.core.replace
 import ru.kartollika.yandexcup.gif.GifExporter
@@ -70,6 +66,7 @@ class CanvasFeature @Inject constructor(
   private val gifExporter: GifExporter,
   private val dummyPathsGenerator: DummyPathsGenerator,
   private val editorConfigurationParser: EditorConfigurationParser,
+  private val shapeDrawer: ShapeDrawer,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
   override fun initialState(): CanvasState = CanvasState()
 
@@ -158,18 +155,7 @@ class CanvasFeature @Inject constructor(
   }
 
   private fun drawShape(shape: Shape) {
-    val path = Path()
-
-    when (shape) {
-      Circle -> path.addOval(Rect(100f, 100f, 400f, 400f))
-      Square -> path.addRect(Rect(100f, 100f, 400f, 400f))
-      Triangle -> {
-        path.moveTo(100f, 100f)
-        path.lineTo(200f, 250f)
-        path.lineTo(0f, 250f)
-        path.lineTo(100f, 100f)
-      }
-    }
+    val path = shapeDrawer.drawShape(shape)
 
     consumeAction(
       DrawFinish(
