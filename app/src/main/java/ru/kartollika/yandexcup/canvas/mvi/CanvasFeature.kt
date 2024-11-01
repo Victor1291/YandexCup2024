@@ -53,10 +53,10 @@ import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
 import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator
 import ru.kartollika.yandexcup.canvas.sources.EditorConfigurationParser
+import ru.kartollika.yandexcup.canvas.sources.GifExporter
 import ru.kartollika.yandexcup.canvas.sources.ShapeDrawer
 import ru.kartollika.yandexcup.canvas.updateEditorConfig
 import ru.kartollika.yandexcup.core.replace
-import ru.kartollika.yandexcup.gif.GifExporter
 import ru.kartollika.yandexcup.mvi2.MVIFeature
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -114,10 +114,14 @@ class CanvasFeature @Inject constructor(
       OpenShapes -> Unit
       is SelectShape -> drawShape(action.shape)
       is ExportToGif -> processExportToGif()
-      is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
+//      is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
+      is GenerateDummyFrames -> Unit
       is AddFrames -> Unit
       TransformModeClick -> Unit
     }
+  }
+
+  private fun mockDummyFrames(framesCount: Int) {
   }
 
   private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
@@ -329,7 +333,9 @@ class CanvasFeature @Inject constructor(
       is SelectShape -> state
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
-      is GenerateDummyFrames -> state
+      is GenerateDummyFrames -> state.copy(
+        framesCount = state.framesCount + action.framesCount
+      )
       is AddFrames -> state.copy(
         frames = state.mutateFrames {
           addAll(action.frames)

@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas.compose
+package ru.kartollika.yandexcup.canvas.compose.picker
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +16,7 @@ import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
 import ru.kartollika.yandexcup.canvas.Shape.Straight
 import ru.kartollika.yandexcup.canvas.Shape.Triangle
+import ru.kartollika.yandexcup.canvas.compose.ActionIcon
 
 @Composable
 fun InstrumentsPicker(

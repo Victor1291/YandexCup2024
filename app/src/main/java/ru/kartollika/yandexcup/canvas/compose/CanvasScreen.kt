@@ -67,8 +67,13 @@ import ru.kartollika.yandexcup.canvas.CanvasMode
 import ru.kartollika.yandexcup.canvas.CanvasMode.Draw
 import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
+import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.Shape
-import ru.kartollika.yandexcup.canvas.frames.FramesScreen
+import ru.kartollika.yandexcup.canvas.compose.controls.TopControls
+import ru.kartollika.yandexcup.canvas.compose.frames.FramesScreen
+import ru.kartollika.yandexcup.canvas.compose.picker.BrushSizePicker
+import ru.kartollika.yandexcup.canvas.compose.picker.ColorsPicker
+import ru.kartollika.yandexcup.canvas.compose.picker.InstrumentsPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
@@ -84,6 +89,7 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
 import ru.kartollika.yandexcup.canvas.mvi.PathWithProperties
 import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
+import ru.kartollika.yandexcup.core.noIndicationClickable
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 import kotlin.math.cos
 import kotlin.math.sin
@@ -382,12 +388,13 @@ private fun CanvasScreen(
           FramesScreen(
             modifier = Modifier
               .fillMaxSize(),
-            frames = canvasState.frames,
+//            frames = canvasState.frames,
             selectFrame = selectFrame,
             deleteFrame = { index ->
-              deleteFrame(FrameIndex.Index(index))
+              deleteFrame(Index(index))
             },
             deleteAllFrames = deleteAllFrames,
+            canvasState = canvasState,
             generateDummyFrames = {
               generateDummyFramesDialogVisible = true
             }
@@ -579,7 +586,7 @@ private fun BottomControls(
         }
       }
     } else {
-      BottomControls(
+      ru.kartollika.yandexcup.canvas.compose.controls.BottomControls(
         modifier = Modifier
           .fillMaxSize()
           .padding(horizontal = 8.dp),
@@ -647,8 +654,9 @@ private fun BoxScope.Pickers(
         .align(Alignment.BottomCenter)
         .background(Color.Gray, RoundedCornerShape(4.dp))
         .padding(horizontal = 16.dp)
-        .height(50.dp)
-        .width(200.dp),
+        .height(60.dp)
+        .width(250.dp)
+        .noIndicationClickable(),
       editorConfiguration = canvasState.editorConfiguration,
       changeBrushSize = changeBrushSize
     )

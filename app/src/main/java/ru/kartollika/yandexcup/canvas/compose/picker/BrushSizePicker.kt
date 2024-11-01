@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas.compose
+package ru.kartollika.yandexcup.canvas.compose.picker
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

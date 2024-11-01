@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
@@ -37,12 +37,12 @@ fun Slider(
     Spacer(
       modifier = Modifier
         .size(24.dp)
-        .background(MaterialTheme.colorScheme.primary, CircleShape)
+        .background(Color.White, CircleShape)
     )
   },
   invertTrack: Boolean = false,
 ) {
-  androidx.compose.material3.Slider(
+  Slider(
     value = value,
     onValueChange = onValueChange,
     modifier = modifier,

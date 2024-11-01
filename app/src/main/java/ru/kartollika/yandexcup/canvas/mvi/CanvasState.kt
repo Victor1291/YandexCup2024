@@ -12,6 +12,7 @@ import ru.kartollika.yandexcup.mvi2.MVIState
 data class CanvasState(
   val frames: Frames = persistentListOf(Frame()),
   val currentFrameIndex: Int = 0,
+  val framesCount: Int = 1,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
 ) : MVIState {

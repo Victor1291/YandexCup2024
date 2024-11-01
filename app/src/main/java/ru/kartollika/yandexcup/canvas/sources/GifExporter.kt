@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.gif
+package ru.kartollika.yandexcup.canvas.sources
 
 import android.content.Context
 import android.graphics.Bitmap

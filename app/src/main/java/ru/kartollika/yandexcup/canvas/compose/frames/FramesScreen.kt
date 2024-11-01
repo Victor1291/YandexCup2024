@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas.frames
+package ru.kartollika.yandexcup.canvas.compose.frames
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,16 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
-import ru.kartollika.yandexcup.canvas.mvi.Frame
-import ru.kartollika.yandexcup.canvas.mvi.Frames
+import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
 fun FramesScreen(
   modifier: Modifier = Modifier,
-  frames: Frames,
+  canvasState: CanvasState,
   selectFrame: (Int) -> Unit = {},
   deleteFrame: (Int) -> Unit = {},
   deleteAllFrames: () -> Unit = {},
@@ -75,7 +72,22 @@ fun FramesScreen(
       LazyColumn(
         modifier = Modifier.fillMaxSize()
       ) {
-        itemsIndexed(frames, key = { index, item -> index}) { index, frame ->
+        items(canvasState.framesCount) { index ->
+          FrameItem(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                selectFrame(index)
+              }
+              .padding(16.dp),
+//            frame = frame,
+            index = index,
+            deleteFrame = {
+              deleteFrame(index)
+            }
+          )
+        }
+        /*itemsIndexed(canvasState.framesCount, key = { index, item -> index}) { index, frame ->
           FrameItem(
             modifier = Modifier
               .fillMaxWidth()
@@ -89,7 +101,7 @@ fun FramesScreen(
               deleteFrame(index)
             }
           )
-        }
+        }*/
       }
     }
   }
@@ -98,7 +110,7 @@ fun FramesScreen(
 @Composable
 fun FrameItem(
   modifier: Modifier = Modifier,
-  frame: Frame,
+//  frame: Frame,
   index: Int,
   deleteFrame: () -> Unit = {},
 ) {
@@ -151,7 +163,8 @@ private fun FramesScreenPreview() {
   YandexCup2024Theme {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
-      frames = persistentListOf(Frame())
+      canvasState = CanvasState()
+//      frames = persistentListOf(Frame())
     )
   }
 }

@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun Modifier.noIndicationClickable(
   enabled: Boolean = true,
-  onClick: () -> Unit,
+  onClick: () -> Unit = {},
 ): Modifier {
   val interactionSource = remember { NoopMutableInteractionSource }
 

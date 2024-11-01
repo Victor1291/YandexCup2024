@@ -1,4 +1,4 @@
-package ru.kartollika.yandexcup.canvas.compose
+package ru.kartollika.yandexcup.canvas.compose.controls
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.compose.ActionIcon
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform

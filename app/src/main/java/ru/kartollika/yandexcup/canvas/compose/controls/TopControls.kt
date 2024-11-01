@@ -1,10 +1,11 @@
-package ru.kartollika.yandexcup.canvas.compose
+package ru.kartollika.yandexcup.canvas.compose.controls
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.compose.ActionIcon
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 
 @Composable fun TopControls(
