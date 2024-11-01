@@ -190,19 +190,13 @@ class CanvasFeature @Inject constructor(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame: Frame ->
-              val paths = frame.paths!!.toMutableList().apply {
+              val paths = frame.paths.toMutableList().apply {
                 action.pathWithProperties.let(this::add)
               }.toImmutableList()
 
-              val newFrame = frame.copy(
-                paths = paths
-              )
-
-              newFrame.copy(
-                historyIndex = newFrame.historyIndex + 1,
-                snapshots = newFrame.snapshots
-                  ?.dropSnapshotsStartingFrom(newFrame.historyIndex + 1)
-                  ?.pushSnapshot(newFrame),
+              frame.copy(
+                paths = paths,
+                undoPaths = null,
               )
             }
           ).toImmutableList()
@@ -224,25 +218,31 @@ class CanvasFeature @Inject constructor(
       )
 
       UndoChange -> {
-        val previousSnapshot = state.currentFrame.previousSnapshot ?: return state
         state.copy(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame ->
-              frame.restoreSnapshot(previousSnapshot)
+              val pathToUndo = frame.paths.last()
+              frame.copy(
+                paths = frame.paths.subList(0, frame.paths.lastIndex),
+                undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
+              )
             }
           ).toImmutableList()
         )
       }
 
       RedoChange -> {
-        val nextSnapshot = state.currentFrame.nextSnapshot ?: return state
-
         state.copy(
           frames = state.frames.replace(
             replaceIndex = state.currentFrameIndex,
             newItem = { frame ->
-              frame.restoreSnapshot(nextSnapshot)
+              frame.copy(
+                paths = (frame.paths + frame.undoPaths!!.last()).toImmutableList(),
+                undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
+                  .takeIf { it.isNotEmpty() }
+              )
+//              frame.restoreSnapshot(nextSnapshot)
             }
           ).toImmutableList(),
         )
@@ -316,11 +316,34 @@ class CanvasFeature @Inject constructor(
       is HideColorPicker -> state.hidePickers()
       HideBrushSizePicker -> state.hidePickers()
 
-      is ChangeBrushSize -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          brushSize = action.size
+      is ChangeBrushSize -> {
+        val updatedState = state.updateEditorConfig(
+          brushSize = action.size,
         )
-      )
+
+        if (state.editorConfiguration.currentMode != Transform) return updatedState
+
+        return updatedState.copy(
+          frames = state.frames.replace(
+            replaceIndex = state.currentFrameIndex,
+            newItem = { frame ->
+              val paths = frame.paths
+              frame.copy(
+                paths = paths.replace(
+                  replaceIndex = paths.lastIndex,
+                  newItem = { path ->
+                    path.copy(
+                      properties = path.properties.copy(
+                        brushSize = updatedState.editorConfiguration.brushSize
+                      )
+                    )
+                  }
+                ).toImmutableList()
+              )
+            }
+          ).toImmutableList()
+        )
+      }
 
       CustomColorClick -> state.updateEditorConfig(
         colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
@@ -330,12 +353,15 @@ class CanvasFeature @Inject constructor(
         color = action.color
       )
 
-      is SelectShape -> state
+      is SelectShape -> state.openBrushPicker().updateEditorConfig(
+        currentMode = Transform
+      )
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
       is GenerateDummyFrames -> state.copy(
         framesCount = state.framesCount + action.framesCount
       )
+
       is AddFrames -> state.copy(
         frames = state.mutateFrames {
           addAll(action.frames)

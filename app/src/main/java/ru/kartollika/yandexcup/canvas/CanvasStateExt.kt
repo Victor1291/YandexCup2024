@@ -15,9 +15,7 @@ fun CanvasState.mutateFrames(block: MutableList<Frame>.() -> Unit) =
 fun CanvasState.copyFrame() = copy(
   frames = mutateFrames {
     add(
-      currentFrame.copy(
-        snapshots = persistentListOf(),
-      )
+      currentFrame.copy()
     )
   },
   currentFrameIndex = frames.lastIndex + 1

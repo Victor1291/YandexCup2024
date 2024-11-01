@@ -44,7 +44,6 @@ fun DrawingCanvas(
   onTransform: OnTransform = OnTransform { centroid, pan, zoom, rotation -> },
 ) {
   val drawModifier = Modifier
-//    .transformable()
     .pointerInput(canvasDrawUiState.mode) {
       if (canvasDrawUiState.mode == Transform) {
         detectTransformGestures(true) { centroid, pan, zoom, rotation ->

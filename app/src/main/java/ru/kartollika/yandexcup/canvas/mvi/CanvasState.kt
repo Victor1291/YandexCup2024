@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
@@ -18,13 +17,10 @@ data class CanvasState(
 ) : MVIState {
 
   val canUndo: Boolean
-    get() = currentFrame.historyIndex > 0
+    get() = currentFrame.paths.isNotEmpty()
 
   val canRedo: Boolean
-    get() {
-      val snapshots = currentFrame.snapshots ?: return false
-      return currentFrame.historyIndex < snapshots.lastIndex
-    }
+    get() = currentFrame.undoPaths?.isNotEmpty() == true
 
   val currentFrame: Frame
     get() = frames[currentFrameIndex]
@@ -91,42 +87,11 @@ typealias Frames = ImmutableList<Frame>
 
 @Immutable
 data class Frame(
-  val paths: ImmutableList<PathWithProperties>? = persistentListOf(),
-  val historyIndex: Int = 0,
-  val snapshots: ImmutableList<FrameSnapshot>? = persistentListOf(FrameSnapshot()),
-) {
-  val previousSnapshot: FrameSnapshot?
-    get() = snapshots?.getOrNull(historyIndex - 1)
-
-  val nextSnapshot: FrameSnapshot?
-    get() = snapshots?.getOrNull(historyIndex + 1)
-}
-
-fun Frame.restoreSnapshot(snapshot: FrameSnapshot): Frame = copy(
-  paths = snapshot.paths,
-  historyIndex = snapshot.snapshotIndex
-)
-
-fun ImmutableList<FrameSnapshot>.dropSnapshotsStartingFrom(index: Int): ImmutableList<FrameSnapshot> {
-  return subList(0, index)
-}
-
-fun ImmutableList<FrameSnapshot>.pushSnapshot(frame: Frame): ImmutableList<FrameSnapshot> {
-  return toMutableList().apply {
-    add(
-      FrameSnapshot(
-        paths = frame.paths!!,
-        snapshotIndex = frame.historyIndex + 1
-      )
-    )
-  }.toImmutableList()
-}
-
-@Immutable
-data class FrameSnapshot(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
-  val snapshotIndex: Int = 0,
+  val undoPaths: ImmutableList<PathWithProperties>? = null,
 )
+
+fun Frame.getOrCreateUndoPaths() = undoPaths.takeIf { it != null } ?: persistentListOf()
 
 @Immutable
 data class EditorConfiguration(
