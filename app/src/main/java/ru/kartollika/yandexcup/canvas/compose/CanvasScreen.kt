@@ -40,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -684,7 +685,7 @@ private fun Canvas(
     }
   }
 
-  SideEffect {
+  LaunchedEffect(canvasState.currentFrame.paths) {
     canvasDrawUiState.currentPath = canvasState.currentFrame.paths?.lastOrNull()
   }
 
