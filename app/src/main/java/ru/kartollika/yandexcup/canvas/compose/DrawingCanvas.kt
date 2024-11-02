@@ -71,6 +71,7 @@ fun DrawingCanvas(
         },
         onDrag = { offset ->
           onDrag(offset)
+          println("drag!")
         },
         onDragCancelled = {
           onDragCancel()
@@ -86,6 +87,7 @@ fun DrawingCanvas(
           zoom = (zoom * gestureZoom).coerceIn(1f, 5f)
           rotation += gestureRotation
           pan += gesturePan
+          println("transform!")
         },
         onDragEnd = {
           onDragEnd()

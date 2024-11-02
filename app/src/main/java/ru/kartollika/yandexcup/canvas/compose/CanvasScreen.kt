@@ -748,13 +748,13 @@ private fun Canvas(
     }
   }
 
-  LaunchedEffect(canvasState.currentFrame.paths) {
-    canvasDrawUiState.currentPath = canvasState.currentFrame.paths?.lastOrNull()
+  LaunchedEffect(canvasState.currentFrame.paths, canvasState.editorConfiguration.currentMode) {
+    canvasDrawUiState.currentPath = canvasState.currentFrame.paths.lastOrNull()
   }
 
   DrawingCanvas(
     paths = {
-      val paths = canvasState.currentFrame.paths ?: return@DrawingCanvas null
+      val paths = canvasState.currentFrame.paths
       paths.subList(0, (paths.size).coerceAtLeast(0))
     },
     previousPaths = {
