@@ -3,6 +3,7 @@ package ru.kartollika.yandexcup.canvas.mvi
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.IntSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.mvi2.MVIState
@@ -113,4 +114,5 @@ data class EditorConfiguration(
   val brushSize: Float = 10f,
   val shapesPickerVisible: Boolean = false,
   val dummyFramesCountInputVisible: Boolean = false,
+  val canvasSize: IntSize = IntSize(0, 0)
 )

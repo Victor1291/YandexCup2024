@@ -1,6 +1,7 @@
 package ru.kartollika.yandexcup.canvas
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
@@ -92,6 +93,7 @@ fun CanvasState.updateEditorConfig(
   brushSize: Float = editorConfiguration.brushSize,
   shapesPickerVisible: Boolean = editorConfiguration.shapesPickerVisible,
   dummyFramesCountInputVisible: Boolean = editorConfiguration.dummyFramesCountInputVisible,
+  canvasSize: IntSize = editorConfiguration.canvasSize,
 ) = copy(
   editorConfiguration = editorConfiguration.copy(
     isPreviewAnimation = isPreviewAnimation,
@@ -103,6 +105,7 @@ fun CanvasState.updateEditorConfig(
     animationDelay = animationDelay,
     brushSize = brushSize,
     shapesPickerVisible = shapesPickerVisible,
-    dummyFramesCountInputVisible = dummyFramesCountInputVisible
+    dummyFramesCountInputVisible = dummyFramesCountInputVisible,
+    canvasSize = canvasSize
   )
 )

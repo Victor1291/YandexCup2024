@@ -9,6 +9,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntSize
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,8 @@ class GifExporter @Inject constructor(
 ) {
   suspend fun export(
     frames: Frames,
-    fileName: String = "gifDir",
+    canvasSize: IntSize,
+    fileName: String = "gif",
   ) =
     withContext(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
       println(throwable)
@@ -40,11 +42,11 @@ class GifExporter @Inject constructor(
       withContext(Dispatchers.Default) {
 
         frames.forEach { frame ->
-          val bitmap = Bitmap.createBitmap(600, 1000, Bitmap.Config.ARGB_8888)
+          val bitmap = Bitmap.createBitmap(canvasSize.width, canvasSize.height, Bitmap.Config.ARGB_8888)
           val canvas = Canvas(bitmap)
 
-//          val save = canvas.saveLayer(null, null)
-          frame.paths?.forEach { pathWithProperties ->
+          val save = canvas.saveLayer(null, null)
+          frame.paths.forEach { pathWithProperties ->
             canvas.drawPath(
               pathWithProperties.path.asAndroidPath(),
               Paint().apply {
@@ -63,17 +65,11 @@ class GifExporter @Inject constructor(
                 }
               })
           }
+          canvas.restoreToCount(save)
 
-//          canvas.restoreToCount(save)
           gifEncoder.addFrame(bitmap)
-//          val image = IntArray(600 * 1000)
-//          bitmap.getPixels(image, 0, 600, 0, 0, 600, 1000)
-//          gifEncoder.addImage(image, 600, ImageOptions().apply {
-//            setLeft(0)
-//          })
         }
         gifEncoder.finish()
-//        gifEncoder.finishEncoding()
       }
       outputStream.close()
     }

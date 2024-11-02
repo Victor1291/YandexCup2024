@@ -16,6 +16,7 @@ import ru.kartollika.yandexcup.canvas.mutateFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CanvasMeasured
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
@@ -118,6 +119,7 @@ class CanvasFeature @Inject constructor(
       is GenerateDummyFrames -> Unit
       is AddFrames -> Unit
       TransformModeClick -> Unit
+      is CanvasMeasured -> Unit
     }
   }
 
@@ -153,8 +155,9 @@ class CanvasFeature @Inject constructor(
 
   private suspend fun processExportToGif() {
     gifExporter.export(
+      fileName = "animation.gif",
       frames = state.value.frames,
-      fileName = "mygif.gif"
+      canvasSize = state.value.editorConfiguration.canvasSize,
     )
   }
 
@@ -347,7 +350,8 @@ class CanvasFeature @Inject constructor(
       )
 
       is OnColorItemClicked -> state.updateEditorConfig(
-        color = action.color
+        color = action.color,
+        colorPickerExpanded = false
       )
 
       is SelectShape -> state.openBrushPicker().updateEditorConfig(
@@ -367,6 +371,10 @@ class CanvasFeature @Inject constructor(
 
       TransformModeClick -> state.updateEditorConfig(
         currentMode = Transform
+      )
+
+      is CanvasMeasured -> state.updateEditorConfig(
+        canvasSize = action.size
       )
     }
   }

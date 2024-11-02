@@ -1,6 +1,7 @@
 package ru.kartollika.yandexcup.canvas.mvi
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.Shape
 import ru.kartollika.yandexcup.mvi2.MVIAction
@@ -40,4 +41,5 @@ sealed interface CanvasAction : MVIAction {
   data class GenerateDummyFrames(val framesCount: Int) : CanvasAction
   data class AddFrames(val frames: Collection<Frame>) : CanvasAction
   data object TransformModeClick : CanvasAction
+  data class CanvasMeasured(val size: IntSize) : CanvasAction
 }

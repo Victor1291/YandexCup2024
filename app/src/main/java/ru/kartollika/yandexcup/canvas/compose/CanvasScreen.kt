@@ -55,10 +55,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
@@ -212,6 +214,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.TransformModeClick)
   }
 
+  fun onCanvasSizeChanged(canvasSize: IntSize) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.CanvasMeasured(canvasSize))
+  }
+
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -241,7 +247,8 @@ fun CanvasScreen(
     selectShape = remember { ::selectShape },
     exportToGif = remember { ::exportToGif },
     confirmGenerateDummyFrames = remember { ::confirmGenerateDummyFrames },
-    onTransformModeClick = remember { ::onTransformModeClick }
+    onTransformModeClick = remember { ::onTransformModeClick },
+    onCanvasSizeChanged = remember { ::onCanvasSizeChanged }
   )
 }
 
@@ -277,6 +284,7 @@ private fun CanvasScreen(
   exportToGif: () -> Unit = {},
   confirmGenerateDummyFrames: (Int) -> Unit = {},
   onTransformModeClick: () -> Unit = {},
+  onCanvasSizeChanged: (IntSize) -> Unit = {},
 ) {
   BackHandlers(
     canvasState = canvasState,
@@ -311,6 +319,7 @@ private fun CanvasScreen(
         onShapeClick = onShapeClick,
         exportToGif = exportToGif,
         onTransformModeClick = onTransformModeClick,
+        onCanvasSizeChanged = onCanvasSizeChanged
       )
 
       Pickers(
@@ -478,6 +487,7 @@ private fun Content(
   onShapeClick: () -> Unit,
   exportToGif: () -> Unit,
   onTransformModeClick: () -> Unit,
+  onCanvasSizeChanged: (IntSize) -> Unit,
 ) {
   Column(
     modifier = Modifier.fillMaxSize(),
@@ -513,6 +523,9 @@ private fun Content(
         .clip(RoundedCornerShape(32.dp))
         .drawBehind {
           drawImage(canvasBackground)
+        }
+        .onSizeChanged {
+          onCanvasSizeChanged(it)
         },
       canvasState = canvasState,
       onDragStart = onDragStart,
