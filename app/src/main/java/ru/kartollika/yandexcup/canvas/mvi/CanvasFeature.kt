@@ -245,7 +245,6 @@ class CanvasFeature @Inject constructor(
                 undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
                   .takeIf { it.isNotEmpty() }
               )
-//              frame.restoreSnapshot(nextSnapshot)
             }
           ).toImmutableList(),
         )

@@ -66,34 +66,6 @@ sealed interface DrawMode {
 
 typealias Frames = ImmutableList<Frame>
 
-/*sealed interface Frame {
-  val paths: ImmutableList<PathWithProperties>?
-  val previousSnapshot: FrameSnapshot?
-  val nextSnapshot: FrameSnapshot?
-  val historyIndex: Int
-  val snapshots: ImmutableList<FrameSnapshot>?
-
-  fun materialize(): RealFrame
-}*/
-
-/*data object GhostFrame: Frame {
-
-  private val creator: () -> RealFrame = { RealFrame() }
-
-  override val paths: ImmutableList<PathWithProperties>? = null
-  override val historyIndex: Int = 0
-  override val snapshots: ImmutableList<FrameSnapshot>? = null
-  override val previousSnapshot: FrameSnapshot? = null
-  override val nextSnapshot: FrameSnapshot? = null
-
-  override fun materialize(): RealFrame {
-    return creator().copy(
-      paths = persistentListOf(),
-      snapshots = persistentListOf(FrameSnapshot())
-    )
-  }
-}*/
-
 @Immutable
 data class Frame(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
