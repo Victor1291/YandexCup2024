@@ -522,7 +522,7 @@ private fun Content(
         .padding(16.dp)
         .clip(RoundedCornerShape(32.dp))
         .drawBehind {
-          drawImage(canvasBackground)
+          drawImage(canvasBackground, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
         }
         .onSizeChanged {
           onCanvasSizeChanged(it)

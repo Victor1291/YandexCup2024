@@ -2,11 +2,13 @@ package ru.kartollika.yandexcup.canvas.sources
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Paint.Style.STROKE
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
@@ -14,6 +16,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.Frames
 import ru.kartollika.yandexcup.core.AnimatedGifEncoder
 import java.io.File
@@ -38,12 +41,21 @@ class GifExporter @Inject constructor(
 
       val gifEncoder = AnimatedGifEncoder()
       gifEncoder.start(outputStream)
+      val backgroundBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.canvas)
 
       withContext(Dispatchers.Default) {
 
         frames.forEach { frame ->
-          val bitmap = Bitmap.createBitmap(canvasSize.width, canvasSize.height, Bitmap.Config.ARGB_8888)
+          val bitmap =
+            Bitmap.createBitmap(canvasSize.width, canvasSize.height, Bitmap.Config.ARGB_8888)
           val canvas = Canvas(bitmap)
+
+          canvas.drawBitmap(
+            backgroundBitmap,
+            null,
+            Rect(0, 0, canvasSize.width, canvasSize.height),
+            null
+          )
 
           val save = canvas.saveLayer(null, null)
           frame.paths.forEach { pathWithProperties ->
