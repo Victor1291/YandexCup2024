@@ -560,15 +560,17 @@ private fun Content(
         .fillMaxWidth()
         .padding(16.dp)
         .clip(RoundedCornerShape(32.dp))
-        .drawBehind {
-          drawImage(canvasBackground, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
-        }
         .onSizeChanged {
           onCanvasSizeChanged(it)
         },
       canvasState = canvasState,
       onDragStart = onDragStart,
       onDragEnd = onDragEnd,
+      backgroundModifier = Modifier
+        .clip(RoundedCornerShape(32.dp))
+        .drawBehind {
+          drawImage(canvasBackground, dstSize = IntSize(size.width.toInt(), size.height.toInt()))
+        }
     )
 
     BottomControls(
@@ -731,6 +733,7 @@ private fun Canvas(
   modifier: Modifier = Modifier,
   onDragStart: () -> Unit = {},
   onDragEnd: (PathWithProperties) -> Unit = {},
+  backgroundModifier: Modifier = Modifier,
 ) {
   val canvasDrawUiState = rememberCanvasDrawState()
   SideEffect {
@@ -770,6 +773,9 @@ private fun Canvas(
     onDragEnd = {
       canvasDrawUiState.currentPath?.let(onDragEnd)
     },
+    onDragCancel = {
+      canvasDrawUiState.currentPath = null
+    },
     canvasDrawUiState = canvasDrawUiState,
     onTransform = { centroid, pan, zoom, rotation ->
       val matrix = Matrix().apply {
@@ -786,6 +792,7 @@ private fun Canvas(
       }
       canvasDrawUiState.transform(matrix)
     },
+    backgroundModifier = backgroundModifier
   )
 }
 
