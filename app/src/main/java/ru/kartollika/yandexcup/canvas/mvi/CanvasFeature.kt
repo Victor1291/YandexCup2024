@@ -46,6 +46,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.TransformModeClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShareGif
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
@@ -154,11 +155,14 @@ class CanvasFeature @Inject constructor(
   }
 
   private suspend fun processExportToGif() {
-    gifExporter.export(
+    val file = gifExporter.export(
       fileName = "animation.gif",
       frames = state.value.frames,
       canvasSize = state.value.editorConfiguration.canvasSize,
+      delay = state.value.editorConfiguration.animationDelay
     )
+
+    consumeEvent(ShareGif(file))
   }
 
   private fun drawShape(shape: Shape) {

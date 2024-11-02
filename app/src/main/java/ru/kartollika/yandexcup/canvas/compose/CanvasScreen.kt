@@ -3,6 +3,8 @@ package ru.kartollika.yandexcup.canvas.compose
 //import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
 //import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 //import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
+import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,12 +58,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.R
@@ -84,6 +88,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
+import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShareGif
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
@@ -93,6 +98,7 @@ import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.canvas.vm.CanvasViewModel
 import ru.kartollika.yandexcup.core.noIndicationClickable
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
+import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import ru.kartollika.yandexcup.components.Slider as YandexcupComponentsSlider
@@ -105,6 +111,7 @@ fun CanvasScreen(
 ) {
   val canvasState: CanvasState by viewModel.stateOwner.state.collectAsState()
   val actionConsumer = viewModel.actionConsumer
+  val eventConsumer = viewModel.eventsOwner
 
   fun onEraseClick() {
     actionConsumer.consumeAction(EraseClick)
@@ -218,6 +225,14 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.CanvasMeasured(canvasSize))
   }
 
+  val context = LocalContext.current
+  LaunchedEffect(eventConsumer) {
+    eventConsumer.events.collect { event ->
+      when (event) {
+        is ShareGif -> shareGif(context, event.file)
+      }
+    }
+  }
   CanvasScreen(
     modifier = modifier,
     canvasState = canvasState,
@@ -250,6 +265,30 @@ fun CanvasScreen(
     onTransformModeClick = remember { ::onTransformModeClick },
     onCanvasSizeChanged = remember { ::onCanvasSizeChanged }
   )
+}
+
+fun shareGif(context: Context, file: File) {
+  val intentShareFile = Intent(Intent.ACTION_SEND)
+  if (file.exists()) {
+    intentShareFile.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    intentShareFile.setType("file/*")
+    intentShareFile.putExtra(
+      Intent.EXTRA_STREAM,
+      FileProvider.getUriForFile(
+        context,
+        context.applicationContext.packageName + ".provider",
+        file
+      )
+    )
+
+    intentShareFile.putExtra(
+      Intent.EXTRA_SUBJECT,
+      "Sharing File..."
+    )
+    intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...")
+
+    context.startActivity(Intent.createChooser(intentShareFile, "Share File"))
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
