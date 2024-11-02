@@ -760,6 +760,7 @@ private fun Canvas(
     },
     modifier = modifier,
     onDragStart = {
+      if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas
       canvasDrawUiState.startDrawing(it)
       onDragStart()
     },
