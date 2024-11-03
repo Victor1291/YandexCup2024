@@ -42,4 +42,5 @@ sealed interface CanvasAction : MVIAction {
   data class AddFrames(val frames: Collection<Frame>) : CanvasAction
   data object TransformModeClick : CanvasAction
   data class CanvasMeasured(val size: IntSize) : CanvasAction
+  data object CloseExpandedColorPicker : CanvasAction
 }

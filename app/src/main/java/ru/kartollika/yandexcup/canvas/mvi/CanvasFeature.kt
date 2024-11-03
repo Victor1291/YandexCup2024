@@ -19,6 +19,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CanvasMeasured
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeBrushSize
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ChangeCurrentFrame
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CloseExpandedColorPicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CopyFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.CustomColorClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DeleteAllFrames
@@ -121,6 +122,7 @@ class CanvasFeature @Inject constructor(
       is AddFrames -> Unit
       TransformModeClick -> Unit
       is CanvasMeasured -> Unit
+      CloseExpandedColorPicker -> Unit
     }
   }
 
@@ -378,6 +380,10 @@ class CanvasFeature @Inject constructor(
 
       is CanvasMeasured -> state.updateEditorConfig(
         canvasSize = action.size
+      )
+
+      CloseExpandedColorPicker -> state.updateEditorConfig(
+        colorPickerExpanded = false
       )
     }
   }

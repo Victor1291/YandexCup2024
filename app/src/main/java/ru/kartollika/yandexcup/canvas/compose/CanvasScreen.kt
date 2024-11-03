@@ -237,6 +237,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.CanvasMeasured(canvasSize))
   }
 
+  fun closeExpandedColorPicker() {
+    viewModel.actionConsumer.consumeAction(CanvasAction.CloseExpandedColorPicker)
+  }
+
   val context = LocalContext.current
   LaunchedEffect(eventConsumer) {
     eventConsumer.events.collect { event ->
@@ -275,7 +279,8 @@ fun CanvasScreen(
     exportToGif = remember { ::exportToGif },
     confirmGenerateDummyFrames = remember { ::confirmGenerateDummyFrames },
     onTransformModeClick = remember { ::onTransformModeClick },
-    onCanvasSizeChanged = remember { ::onCanvasSizeChanged }
+    onCanvasSizeChanged = remember { ::onCanvasSizeChanged },
+    closeExpandedColorPicker = remember { ::closeExpandedColorPicker }
   )
 }
 
@@ -336,6 +341,7 @@ private fun CanvasScreen(
   confirmGenerateDummyFrames: (Int) -> Unit = {},
   onTransformModeClick: () -> Unit = {},
   onCanvasSizeChanged: (IntSize) -> Unit = {},
+  closeExpandedColorPicker: () -> Unit = {},
 ) {
   BackHandlers(
     canvasState = canvasState,
@@ -379,7 +385,8 @@ private fun CanvasScreen(
         onFastColorClicked = onFastColorClicked,
         onColorChanged = onColorChanged,
         changeBrushSize = changeBrushSize,
-        selectShape = selectShape
+        selectShape = selectShape,
+        closeExpandedColorPicker = closeExpandedColorPicker
       )
 
       var generateDummyFramesDialogVisible by remember {
@@ -676,6 +683,7 @@ private fun BoxScope.Pickers(
   onColorChanged: (Color) -> Unit,
   changeBrushSize: (Float) -> Unit,
   selectShape: (Shape) -> Unit = {},
+  closeExpandedColorPicker: () -> Unit = {},
 ) {
   if (canvasState.editorConfiguration.colorPickerVisible) {
     ColorsPicker(
@@ -708,7 +716,8 @@ private fun BoxScope.Pickers(
         )
       },
       fastColorClicked = onFastColorClicked,
-      pickColor = onColorChanged
+      pickColor = onColorChanged,
+      closeExpandedPicker = closeExpandedColorPicker
     )
   }
 
