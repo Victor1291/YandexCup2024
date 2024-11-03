@@ -816,7 +816,7 @@ private fun Canvas(
           },
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        Icon(Icons.Default.Refresh, contentDescription = null)
+        Icon(Icons.Default.Refresh, contentDescription = "Reset transform")
         Text("Reset")
       }
     }
