@@ -6,6 +6,11 @@ package ru.kartollika.yandexcup.canvas.compose
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
@@ -47,16 +53,20 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
@@ -65,9 +75,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.launch
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.CanvasMode
 import ru.kartollika.yandexcup.canvas.CanvasMode.Draw
@@ -752,48 +764,119 @@ private fun Canvas(
     canvasDrawUiState.currentPath = canvasState.currentFrame.paths.lastOrNull()
   }
 
-  DrawingCanvas(
-    paths = {
-      val paths = canvasState.currentFrame.paths
-      paths.subList(0, (paths.size).coerceAtLeast(0))
-    },
-    previousPaths = {
-      if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
-      canvasState.previousFrame?.paths
-    },
-    modifier = modifier,
-    onDragStart = {
-      if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas
-      canvasDrawUiState.startDrawing(it)
-      onDragStart()
-    },
-    onDrag = {
-      canvasDrawUiState.draw(it)
-    },
-    onDragEnd = {
-      canvasDrawUiState.currentPath?.let(onDragEnd)
-    },
-    onDragCancel = {
-      canvasDrawUiState.currentPath = null
-    },
-    canvasDrawUiState = canvasDrawUiState,
-    onTransform = { centroid, pan, zoom, rotation ->
-      val matrix = Matrix().apply {
-        val cos = cos(Math.toRadians(rotation.toDouble()))
-        val sin = sin(Math.toRadians(rotation.toDouble()))
+  var zoom by remember { mutableFloatStateOf(1f) }
+  var rotation by remember { mutableFloatStateOf(0f) }
+  var pan by remember { mutableStateOf(Offset.Zero) }
 
-        this.translate(
-          x = (centroid.x * (1f - zoom) + (1 - cos) + centroid.y * sin).toFloat(),
-          y = (centroid.y * (1f - zoom) + (1 - cos) - centroid.x * sin).toFloat()
-        )
-        this.scale(zoom, zoom)
-        this.rotateZ(rotation)
-        this.translate(pan.x, pan.y)
+  val resetVisible by remember {
+    derivedStateOf {
+      zoom != 1f || pan != Offset.Zero
+    }
+  }
+
+  val coroutineScope = rememberCoroutineScope()
+
+  Box(
+    modifier = modifier
+  ) {
+    AnimatedVisibility(
+      modifier = Modifier
+        .zIndex(1f)
+        .align(Alignment.TopCenter)
+        .padding(top = 16.dp),
+      visible = resetVisible,
+      enter = fadeIn(),
+      exit = fadeOut()
+    ) {
+      Row(
+        modifier = Modifier
+          .background(Color.Gray, CircleShape)
+          .padding(4.dp)
+          .padding(horizontal = 8.dp)
+          .clickable {
+            coroutineScope.launch {
+              launch {
+                animate(zoom, 1f, animationSpec = tween(150)) { value, _ ->
+                  zoom = value
+                }
+              }
+
+              launch {
+                animate(pan.x, 0f, animationSpec = tween(150)) { value, _ ->
+                  pan = pan.copy(x = value)
+                }
+              }
+
+              launch {
+                animate(pan.y, 0f, animationSpec = tween(150)) { value, _ ->
+                  pan = pan.copy(y = value)
+                }
+              }
+            }
+          },
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        Icon(Icons.Default.Refresh, contentDescription = null)
+        Text("Reset")
       }
-      canvasDrawUiState.transform(matrix)
-    },
-    backgroundModifier = backgroundModifier
-  )
+    }
+
+    DrawingCanvas(
+      modifier = Modifier
+        .fillMaxSize()
+        .graphicsLayer {
+          scaleX = zoom
+          scaleY = zoom
+          translationX = pan.x
+          translationY = pan.y
+//        rotationZ = rotation
+        },
+      paths = {
+        val paths = canvasState.currentFrame.paths
+        paths.subList(0, (paths.size).coerceAtLeast(0))
+      },
+      previousPaths = {
+        if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
+        canvasState.previousFrame?.paths
+      },
+      onDragStart = {
+        if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas
+        canvasDrawUiState.startDrawing(it)
+        onDragStart()
+      },
+      onDrag = {
+        canvasDrawUiState.draw(it)
+      },
+      onDragEnd = {
+        canvasDrawUiState.currentPath?.let(onDragEnd)
+      },
+      onDragCancel = {
+        canvasDrawUiState.currentPath = null
+      },
+      canvasDrawUiState = canvasDrawUiState,
+      onTransform = { centroid, pan, zoom, rotation ->
+        val matrix = Matrix().apply {
+          val cos = cos(Math.toRadians(rotation.toDouble()))
+          val sin = sin(Math.toRadians(rotation.toDouble()))
+
+          this.translate(
+            x = (centroid.x * (1f - zoom) + (1 - cos) + centroid.y * sin).toFloat(),
+            y = (centroid.y * (1f - zoom) + (1 - cos) - centroid.x * sin).toFloat()
+          )
+          this.scale(zoom, zoom)
+          this.rotateZ(rotation)
+          this.translate(pan.x, pan.y)
+        }
+        canvasDrawUiState.transform(matrix)
+      },
+      onCanvasTransform = { gestureCentroid, gesturePan, gestureZoom, gestureRotation ->
+        zoom = (zoom * gestureZoom).coerceIn(1f, 5f)
+        rotation += gestureRotation
+        pan += gesturePan
+      },
+      backgroundModifier = backgroundModifier
+    )
+  }
 }
 
 @Preview
