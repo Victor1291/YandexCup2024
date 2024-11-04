@@ -404,7 +404,6 @@ class CanvasFeature @Inject constructor(
       is SelectShape -> state.openBrushPicker().updateEditorConfig(
         currentMode = Transform
       )
-      // TODO Отобразить диалог с лоадером
       ExportToGif -> state.updateEditorConfig(
         isLoading = true
       )

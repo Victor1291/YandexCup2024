@@ -853,7 +853,6 @@ private fun Canvas(
           scaleY = zoom
           translationX = pan.x
           translationY = pan.y
-//        rotationZ = rotation
         },
       paths = {
         val paths = canvasState.currentFrame.paths

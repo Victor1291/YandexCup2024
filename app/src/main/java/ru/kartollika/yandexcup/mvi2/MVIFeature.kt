@@ -1,7 +1,6 @@
 package ru.kartollika.yandexcup.mvi2
 
 import android.util.Log
-import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,12 +28,10 @@ abstract class MVIFeature<State : MVIState, Action : MVIAction, Event : MVIEvent
 
   lateinit var coroutineScope: CoroutineScope
 
-  // UI state
   private val _uiState: MutableStateFlow<State> by lazy { MutableStateFlow(initialState()) }
   override val state: StateFlow<State>
     get() = _uiState.asStateFlow()
 
-  // UI one time events
   private val _uiEvents: MutableSharedFlow<Event> by lazy {
     MutableSharedFlow(extraBufferCapacity = 1)
   }
@@ -47,7 +44,6 @@ abstract class MVIFeature<State : MVIState, Action : MVIAction, Event : MVIEvent
 
   protected var savedState: SavedState? = null
 
-  @VisibleForTesting
   val actions: SharedFlow<Action>
     get() = _actions.asSharedFlow()
 
