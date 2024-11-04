@@ -1,8 +1,5 @@
 package ru.kartollika.yandexcup.canvas.compose
 
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawDrag
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
-//import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
@@ -19,6 +16,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +38,6 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -91,6 +88,7 @@ import ru.kartollika.yandexcup.canvas.FrameIndex
 import ru.kartollika.yandexcup.canvas.FrameIndex.Current
 import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.Shape
+import ru.kartollika.yandexcup.canvas.compose.controls.BottomControls
 import ru.kartollika.yandexcup.canvas.compose.controls.TopControls
 import ru.kartollika.yandexcup.canvas.compose.frames.FramesScreen
 import ru.kartollika.yandexcup.canvas.compose.picker.BrushSizePicker
@@ -459,7 +457,6 @@ private fun CanvasScreen(
           FramesScreen(
             modifier = Modifier
               .fillMaxSize(),
-//            frames = canvasState.frames,
             selectFrame = selectFrame,
             deleteFrame = { index ->
               deleteFrame(Index(index))
@@ -476,6 +473,7 @@ private fun CanvasScreen(
   }
 
   if (canvasState.editorConfiguration.isLoading) {
+    Loadi
     Dialog(
       onDismissRequest = {
 
@@ -670,26 +668,32 @@ private fun BottomControls(
             .weight(1f)
             .height(24.dp),
           value = canvasState.editorConfiguration.animationDelay.toFloat(),
-          valueRange = 10f..1000f,
+          valueRange = 20f..1000f,
           onValueChange = { animationDelay ->
             onDelayChanged(animationDelay)
           },
+          thumb = {
+            Spacer(
+              modifier = Modifier
+                .size(24.dp)
+                .background(MaterialTheme.colorScheme.onSurface, CircleShape)
+            )
+          }
         )
 
-        IconButton(
-          modifier = Modifier,
-          onClick = {
-            exportToGif()
-          }
-        ) {
-          Icon(
-            imageVector = Icons.Default.Share,
-            contentDescription = null,
-          )
-        }
+        ActionIcon(
+          onClick = exportToGif,
+          icon = Icons.Default.Share,
+          modifier = Modifier
+            .background(
+              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+              CircleShape
+            ),
+          contentDescription = "Поделиться GIF"
+        )
       }
     } else {
-      ru.kartollika.yandexcup.canvas.compose.controls.BottomControls(
+      BottomControls(
         modifier = Modifier
           .fillMaxSize()
           .padding(horizontal = 8.dp),
@@ -723,6 +727,7 @@ private fun BoxScope.Pickers(
         .width(Min)
         .padding(bottom = 64.dp)
         .align(Alignment.BottomCenter)
+        .noIndicationClickable()
         .padding(16.dp),
       smallPickerColors = persistentListOf(
         Color.White,
@@ -737,7 +742,7 @@ private fun BoxScope.Pickers(
             .clip(CircleShape)
             .clickable { onCustomColorClick() },
           painter = painterResource(R.drawable.palette),
-          contentDescription = null,
+          contentDescription = "Открыть палитру",
           tint = if (canvasState.editorConfiguration.colorPickerExpanded) {
             MaterialTheme.colorScheme.primary
           } else {
@@ -858,7 +863,7 @@ private fun Canvas(
       ) {
         Icon(
           Icons.Default.Refresh,
-          contentDescription = "Reset transform",
+          contentDescription = "Сбросить трансформирование",
           tint = Color.White,
         )
         Text(
