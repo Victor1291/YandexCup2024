@@ -8,6 +8,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 
 @Composable
@@ -29,6 +30,30 @@ fun ActionIcon(
   ) {
     Icon(
       painter = painterResource(icon),
+      contentDescription = contentDescription,
+    )
+  }
+}
+
+@Composable
+fun ActionIcon(
+  icon: ImageVector,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true,
+  tint: Color = LocalContentColor.current,
+  contentDescription: String? = null,
+) {
+  IconButton(
+    modifier = modifier,
+    onClick = onClick,
+    enabled = enabled,
+    colors = IconButtonDefaults.iconButtonColors(
+      contentColor = tint
+    )
+  ) {
+    Icon(
+      imageVector = icon,
       contentDescription = contentDescription,
     )
   }

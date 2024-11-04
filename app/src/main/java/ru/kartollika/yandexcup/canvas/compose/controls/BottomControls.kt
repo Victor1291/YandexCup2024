@@ -1,5 +1,7 @@
 package ru.kartollika.yandexcup.canvas.compose.controls
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,9 +13,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.ActionIcon
@@ -58,7 +66,8 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
           MaterialTheme.colorScheme.primary
         } else {
           MaterialTheme.colorScheme.onSurface
-        }
+        },
+        contentDescription = "Режим трансформации"
       )
     }
   )
@@ -69,6 +78,10 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   onBrushSizeClick: () -> Unit,
 ) {
   Box(
+    modifier = Modifier
+      .semantics {
+        contentDescription = "Размер кисти"
+      },
     contentAlignment = Alignment.Center
   ) {
     Spacer(
@@ -89,9 +102,28 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         }
     )
 
+    val brushSize by animateDpAsState(
+      targetValue = editorConfiguration.brushSizeByMode.dp * 0.2f,
+      animationSpec = tween(100)
+    )
+
     Spacer(
       modifier = Modifier
-        .size(editorConfiguration.brushSize.dp * 0.2f)
+        .layout { measurable: Measurable, constraints: Constraints ->
+          val sizePx = brushSize.roundToPx()
+          val placeable = measurable.measure(
+            constraints.copy(
+              minWidth = sizePx,
+              maxWidth = sizePx,
+              minHeight = sizePx,
+              maxHeight = sizePx
+            )
+          )
+
+          layout(sizePx, sizePx) {
+            placeable.placeRelative(0, 0)
+          }
+        }
         .background(LocalContentColor.current, CircleShape)
     )
   }
@@ -114,7 +146,8 @@ private fun EditorButtons(
       MaterialTheme.colorScheme.primary
     } else {
       MaterialTheme.colorScheme.onSurface
-    }
+    },
+    contentDescription = "Режим рисования"
   )
 
   ActionIcon(
@@ -126,7 +159,8 @@ private fun EditorButtons(
       MaterialTheme.colorScheme.primary
     } else {
       MaterialTheme.colorScheme.onSurface
-    }
+    },
+    contentDescription = "Режим стирания"
   )
 
   ActionIcon(
@@ -134,6 +168,7 @@ private fun EditorButtons(
     onClick = onShapesClick,
     modifier = Modifier
       .size(32.dp),
+    contentDescription = "Вставить фигуру"
   )
 
   Spacer(
@@ -149,6 +184,9 @@ private fun EditorButtons(
       .clip(CircleShape)
       .clickable {
         onColorClick()
+      }
+      .semantics {
+        contentDescription = "Выбрать цвет"
       },
   )
 }

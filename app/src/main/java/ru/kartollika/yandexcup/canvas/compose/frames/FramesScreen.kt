@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,11 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.kartollika.yandexcup.R
+import ru.kartollika.yandexcup.canvas.compose.ActionIcon
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
@@ -170,17 +168,11 @@ fun FrameItem(
       }
     }
 
-    IconButton(
-      onClick = {
-        deleteFrame()
-      }
-    ) {
-      Icon(
-        modifier = Modifier,
-        painter = painterResource(R.drawable.bin),
-        contentDescription = null
-      )
-    }
+    ActionIcon(
+      onClick = deleteFrame,
+      contentDescription = "Удалить кадр",
+      icon = R.drawable.bin
+    )
   }
 }
 
@@ -191,7 +183,6 @@ private fun FramesScreenPreview() {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
       canvasState = CanvasState(currentFrame = RealFrame())
-//      frames = persistentListOf(Frame())
     )
   }
 }

@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.IntSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.mvi2.MVIState
 
 @Immutable
@@ -91,8 +92,12 @@ data class EditorConfiguration(
   val currentMode: DrawMode = DrawMode.Pencil,
   val animationDelay: Int = 200,
   val brushSize: Float = 30f,
+  val eraserSize: Float = 30f,
   val shapesPickerVisible: Boolean = false,
   val dummyFramesCountInputVisible: Boolean = false,
   val canvasSize: IntSize = IntSize(0, 0),
   val isLoading: Boolean = false,
-)
+) {
+  val brushSizeByMode: Float
+    get() = if (currentMode == Erase) eraserSize else brushSize
+}

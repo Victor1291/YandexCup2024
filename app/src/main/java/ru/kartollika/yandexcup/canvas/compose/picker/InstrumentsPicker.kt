@@ -38,6 +38,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.square,
           tint = Color.White,
+          contentDescription = "Квадрат"
         )
 
         ActionIcon(
@@ -48,6 +49,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.circle,
           tint = Color.White,
+          contentDescription = "Круг"
         )
 
         ActionIcon(
@@ -58,6 +60,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.triangle,
           tint = Color.White,
+          contentDescription = "Треугольник"
         )
 
         ActionIcon(
@@ -68,6 +71,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.arrow_up,
           tint = Color.White,
+          contentDescription = "Стрелка"
         )
 
         ActionIcon(
@@ -79,6 +83,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.straight,
           tint = Color.White,
+          contentDescription = "Прямая линия"
         )
       }
     }

@@ -21,7 +21,7 @@ fun BrushSizePicker(
     Slider(
       modifier = Modifier
         .fillMaxSize(),
-      value = editorConfiguration.brushSize,
+      value = editorConfiguration.brushSizeByMode,
       valueRange = 4f..100f,
       onValueChange = { value ->
         changeBrushSize(value)

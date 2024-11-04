@@ -382,9 +382,15 @@ class CanvasFeature @Inject constructor(
       is HideColorPicker -> state.hidePickers()
       HideBrushSizePicker -> state.hidePickers()
 
-      is ChangeBrushSize -> state.updateEditorConfig(
-        brushSize = action.size,
-      )
+      is ChangeBrushSize -> if (state.editorConfiguration.currentMode == Erase) {
+        state.updateEditorConfig(
+          eraserSize = action.size,
+        )
+      } else {
+        state.updateEditorConfig(
+          brushSize = action.size,
+        )
+      }
 
       CustomColorClick -> state.updateEditorConfig(
         colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded

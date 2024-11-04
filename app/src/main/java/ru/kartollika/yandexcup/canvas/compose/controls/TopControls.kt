@@ -64,6 +64,7 @@ private fun AnimationButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = editorConfiguration.isPreviewAnimation,
+    contentDescription = "Остановить анимацию GIF"
   )
 
   ActionIcon(
@@ -72,6 +73,7 @@ private fun AnimationButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = !editorConfiguration.isPreviewAnimation,
+    contentDescription = "Запустить анимацию GIF"
   )
 }
 
@@ -89,6 +91,7 @@ private fun FramesButtons(
     onClick = deleteFrame,
     modifier = Modifier
       .size(32.dp),
+    contentDescription = "Удалить текущий кадр"
   )
 
   ActionIcon(
@@ -96,6 +99,7 @@ private fun FramesButtons(
     onClick = addFrame,
     modifier = Modifier
       .size(32.dp),
+    contentDescription = "Добавить кадр"
   )
 
   ActionIcon(
@@ -103,6 +107,7 @@ private fun FramesButtons(
     onClick = showFrames,
     modifier = Modifier
       .size(32.dp),
+    contentDescription = "Открыть раскадровку"
   )
 
   ActionIcon(
@@ -110,6 +115,7 @@ private fun FramesButtons(
     onClick = copyFrame,
     modifier = Modifier
       .size(32.dp),
+    contentDescription = "Дублировать текущий кадр"
   )
 }
 
@@ -128,6 +134,7 @@ private fun UndoRedoButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = canUndo,
+    contentDescription = "Отменить действие"
   )
 
   ActionIcon(
@@ -136,5 +143,6 @@ private fun UndoRedoButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = canRedo,
+    contentDescription = "Вернуть отмененное действие"
   )
 }
