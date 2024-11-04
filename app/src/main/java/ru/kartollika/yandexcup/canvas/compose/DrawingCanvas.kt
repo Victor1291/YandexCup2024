@@ -62,7 +62,6 @@ fun DrawingCanvas(
         },
         onDrag = { offset ->
           onDrag(offset)
-          println("drag!")
         },
         onDragCancelled = {
           onDragCancel()
@@ -76,7 +75,6 @@ fun DrawingCanvas(
             changes: List<PointerInputChange>,
           ->
           onCanvasTransform(gestureCentroid, gesturePan, gestureZoom, gestureRotation)
-          println("transform")
         },
         onDragEnd = {
           onDragEnd()

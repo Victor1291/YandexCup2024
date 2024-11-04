@@ -58,6 +58,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -859,6 +860,9 @@ private fun Canvas(
       }
     }
 
+    val isPreviewAnimation by
+      rememberUpdatedState(canvasState.editorConfiguration.isPreviewAnimation)
+
     DrawingCanvas(
       modifier = Modifier
         .fillMaxSize()
@@ -874,18 +878,23 @@ private fun Canvas(
         paths.subList(0, (paths.size).coerceAtLeast(0))
       },
       previousPaths = {
-        if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas null
+        if (isPreviewAnimation) return@DrawingCanvas null
         canvasState.previousFrame?.paths
       },
       onDragStart = {
-        if (canvasState.editorConfiguration.isPreviewAnimation) return@DrawingCanvas
+        if (isPreviewAnimation) return@DrawingCanvas
+
         canvasDrawUiState.startDrawing(it)
         onDragStart()
       },
       onDrag = {
+        if (isPreviewAnimation) return@DrawingCanvas
+
         canvasDrawUiState.draw(it)
       },
       onDragEnd = {
+        if (isPreviewAnimation) return@DrawingCanvas
+
         canvasDrawUiState.currentPath?.let(onDragEnd)
       },
       onDragCancel = {
@@ -893,6 +902,8 @@ private fun Canvas(
       },
       canvasDrawUiState = canvasDrawUiState,
       onTransform = { centroid, pan, zoom, rotation ->
+        if (isPreviewAnimation) return@DrawingCanvas
+
         val matrix = Matrix().apply {
           val cos = cos(Math.toRadians(rotation.toDouble()))
           val sin = sin(Math.toRadians(rotation.toDouble()))
@@ -908,6 +919,8 @@ private fun Canvas(
         canvasDrawUiState.transform(matrix)
       },
       onCanvasTransform = { gestureCentroid, gesturePan, gestureZoom, gestureRotation ->
+        if (isPreviewAnimation) return@DrawingCanvas
+
         zoom = (zoom * gestureZoom).coerceIn(1f, 5f)
         rotation += gestureRotation
         pan += gesturePan
