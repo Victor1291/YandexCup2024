@@ -31,11 +31,15 @@ class GifExporter @Inject constructor(
   @ApplicationContext
   private val context: Context,
 ) {
+  /**
+   * @param scaleValue The more value the less quality will be for gif
+   */
   suspend fun export(
     frames: List<Frame>,
     canvasSize: IntSize,
     delay: Int = 0,
     fileName: String = "gif",
+    scaleValue: Int = 3
   ): File =
     withContext(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
       println(
@@ -48,7 +52,7 @@ class GifExporter @Inject constructor(
 
       val gifEncoder = AnimatedGifEncoder()
       gifEncoder.start(outputStream)
-      gifEncoder.setQuality(1)
+      gifEncoder.setQuality(2)
       gifEncoder.setDelay(delay)
       val backgroundBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.canvas)
 
@@ -65,8 +69,8 @@ class GifExporter @Inject constructor(
 
           val bitmap =
             Bitmap.createBitmap(
-              canvasSize.width / 4,
-              canvasSize.height / 4,
+              canvasSize.width / scaleValue,
+              canvasSize.height / scaleValue,
               Bitmap.Config.RGB_565
             )
           val canvas = Canvas(bitmap)
@@ -74,13 +78,18 @@ class GifExporter @Inject constructor(
           canvas.drawBitmap(
             backgroundBitmap,
             null,
-            Rect(0, 0, canvasSize.width / 4, canvasSize.height / 4),
+            Rect(
+              0,
+              0,
+              canvasSize.width / scaleValue,
+              canvasSize.height / scaleValue
+            ),
             null
           )
 
           val save = canvas.saveLayer(null, null)
           materializedFrame.paths.forEach { pathWithProperties ->
-            canvas.withScale(x = 1f / 4, y = 1f / 4) {
+            canvas.withScale(x = 1f / scaleValue, y = 1f / scaleValue) {
               canvas.drawPath(
                 pathWithProperties.path.asAndroidPath(),
                 paint.apply {
