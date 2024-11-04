@@ -14,8 +14,8 @@ data class CanvasState(
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
   val maxFramesCount: Int = 1,
-  val currentFrame: Frame,
-  val previousFrame: Frame? = null
+  val currentFrame: RealFrame,
+  val previousFrame: RealFrame? = null,
 ) : MVIState {
 
   val canUndo: Boolean
@@ -51,15 +51,35 @@ sealed interface DrawMode {
   data object Transform : DrawMode
 }
 
-typealias Frames = ImmutableList<Frame>
+sealed interface Frame {
+  fun materialize(): Frame
+}
+
+data class GhostFrame(
+  private val creator: () -> Frame = { RealFrame() },
+) : Frame {
+  private var materializedFrame: Frame? = null
+
+  override fun materialize(): Frame {
+    val materializedFrame = materializedFrame
+    if (materializedFrame != null) {
+      return materializedFrame
+    }
+    return creator().also {
+      this.materializedFrame = it
+    }
+  }
+}
 
 @Immutable
-data class Frame(
+data class RealFrame(
   val paths: ImmutableList<PathWithProperties> = persistentListOf(),
   val undoPaths: ImmutableList<PathWithProperties>? = null,
-)
+) : Frame {
+  override fun materialize(): Frame = this
+}
 
-fun Frame.getOrCreateUndoPaths() = undoPaths.takeIf { it != null } ?: persistentListOf()
+fun RealFrame.getOrCreateUndoPaths() = undoPaths.takeIf { it != null } ?: persistentListOf()
 
 @Immutable
 data class EditorConfiguration(

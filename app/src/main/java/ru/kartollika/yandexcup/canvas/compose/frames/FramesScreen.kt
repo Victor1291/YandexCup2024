@@ -30,7 +30,7 @@ import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
-import ru.kartollika.yandexcup.canvas.mvi.Frame
+import ru.kartollika.yandexcup.canvas.mvi.RealFrame
 import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
 import ru.kartollika.yandexcup.canvas.vm.FramesViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
@@ -84,7 +84,8 @@ fun FramesScreen(
         modifier = Modifier.fillMaxSize()
       ) {
         items(canvasState.maxFramesCount) { index ->
-          val frame = viewModel.getFrameAt(index)
+          val frame = viewModel.getFrameAt(index)?.materialize() as? RealFrame
+
           FrameItem(
             modifier = Modifier
               .fillMaxWidth()
@@ -108,7 +109,7 @@ fun FramesScreen(
 @Composable
 fun FrameItem(
   modifier: Modifier = Modifier,
-  frame: Frame?,
+  frame: RealFrame?,
   index: Int,
   editorConfiguration: EditorConfiguration,
   deleteFrame: () -> Unit = {},
@@ -159,7 +160,7 @@ private fun FramesScreenPreview() {
   YandexCup2024Theme {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
-      canvasState = CanvasState(currentFrame = Frame())
+      canvasState = CanvasState(currentFrame = RealFrame())
 //      frames = persistentListOf(Frame())
     )
   }

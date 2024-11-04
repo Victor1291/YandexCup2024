@@ -38,7 +38,7 @@ sealed interface CanvasAction : MVIAction {
   data object OpenShapes : CanvasAction
   data class SelectShape(val shape: Shape) : CanvasAction
   data object ExportToGif : CanvasAction
-  data object FinishExportToGif : CanvasAction
+  data object FinishLoading : CanvasAction
   data class GenerateDummyFrames(val framesCount: Int) : CanvasAction
   data class AddFrames(val frames: Collection<Frame>) : CanvasAction
   data object TransformModeClick : CanvasAction

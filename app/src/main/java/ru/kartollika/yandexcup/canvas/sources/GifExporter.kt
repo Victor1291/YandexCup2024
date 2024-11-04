@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.Frame
+import ru.kartollika.yandexcup.canvas.mvi.RealFrame
 import ru.kartollika.yandexcup.core.AnimatedGifEncoder
 import java.io.File
 import java.io.OutputStream
@@ -56,6 +57,8 @@ class GifExporter @Inject constructor(
 
       withContext(Dispatchers.Default) {
         frames.forEach { frame ->
+          val materializedFrame = frame.materialize() as RealFrame
+
           val bitmap =
             Bitmap.createBitmap(
               canvasSize.width / 4,
@@ -72,7 +75,7 @@ class GifExporter @Inject constructor(
           )
 
           val save = canvas.saveLayer(null, null)
-          frame.paths.forEach { pathWithProperties ->
+          materializedFrame.paths.forEach { pathWithProperties ->
             canvas.withScale(x = 1f / 4, y = 1f / 4) {
               canvas.drawPath(
                 pathWithProperties.path.asAndroidPath(),

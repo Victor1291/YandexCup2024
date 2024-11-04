@@ -25,7 +25,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ExportToGif
-import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.FinishExportToGif
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.FinishLoading
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.GenerateDummyFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
@@ -72,10 +72,10 @@ class CanvasFeature @Inject constructor(
   private val shapeDrawer: ShapeDrawer,
   private val framesRepository: FramesRepository,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
-  override fun initialState(): CanvasState = CanvasState(currentFrame = Frame())
+  override fun initialState(): CanvasState = CanvasState(currentFrame = RealFrame())
 
-  private val currentFrame: Frame
-    get() = framesRepository.frames[state.value.currentFrameIndex]
+  private val currentFrame: RealFrame
+    get() = state.value.currentFrame
 
   override suspend fun processAction(state: CanvasState, action: CanvasAction) {
     when (action) {
@@ -129,7 +129,7 @@ class CanvasFeature @Inject constructor(
 
       is OnColorChanged -> Unit
       is AddNewFrame -> {
-        framesRepository.frames.add(Frame())
+        framesRepository.frames.add(RealFrame())
       }
 
       is DeleteFrame -> {
@@ -163,9 +163,10 @@ class CanvasFeature @Inject constructor(
       is SelectFrame -> Unit
       is DeleteAllFrames -> {
         framesRepository.frames.clear()
-        framesRepository.frames.add(Frame())
+        framesRepository.frames.add(RealFrame())
         consumeAction(ChangeCurrentFrame(0))
       }
+
       is HideColorPicker -> Unit
       ShowBrushSizePicker -> Unit
       is ChangeBrushSize -> {
@@ -199,14 +200,17 @@ class CanvasFeature @Inject constructor(
       OpenShapes -> Unit
       is SelectShape -> drawShape(action.shape)
       is ExportToGif -> processExportToGif()
-//      is GenerateDummyFrames -> generateDummyFrames(action.framesCount)
-      is GenerateDummyFrames -> Unit
-      is AddFrames -> Unit
+      is GenerateDummyFrames -> {
+        generateDummyFrames(action.framesCount)
+      }
+      is AddFrames -> {
+        framesRepository.frames.addAll(action.frames)
+      }
       TransformModeClick -> Unit
       is CanvasMeasured -> Unit
       CloseExpandedColorPicker -> Unit
       UpdateCurrentFrames -> Unit
-      FinishExportToGif -> Unit
+      FinishLoading -> Unit
     }
 
     // Update state's currentFrame and previousFrame after each action
@@ -219,9 +223,6 @@ class CanvasFeature @Inject constructor(
     consumeAction(UpdateCurrentFrames)
   }
 
-  private fun mockDummyFrames(framesCount: Int) {
-  }
-
   private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
     launch(Dispatchers.Default) {
       var processed = 0
@@ -229,7 +230,7 @@ class CanvasFeature @Inject constructor(
       try {
         (0 until framesCount)
           .asSequence()
-          .chunked(1000000)
+          .chunked(500000)
           .map { it.size }
           .forEach { chunkSize ->
             val frames = dummyPathsGenerator.generateFrames(
@@ -243,6 +244,8 @@ class CanvasFeature @Inject constructor(
       } catch (e: Exception) {
         Log.e("dummy creator", "Error", e)
         println("dummy creator: processed with error $processed")
+      } finally {
+        consumeAction(FinishLoading)
       }
 
       println("dummy creator: processed $processed")
@@ -258,7 +261,7 @@ class CanvasFeature @Inject constructor(
     )
 
     consumeEvent(ShareGif(file))
-    consumeAction(FinishExportToGif)
+    consumeAction(FinishLoading)
   }
 
   private fun drawShape(shape: Shape) {
@@ -399,18 +402,15 @@ class CanvasFeature @Inject constructor(
       ExportToGif -> state.updateEditorConfig(
         isLoading = true
       )
-      FinishExportToGif-> state.updateEditorConfig(
+
+      FinishLoading -> state.updateEditorConfig(
         isLoading = false
       )
-      is GenerateDummyFrames -> state.copy(
-//        maxFramesCount = state.framesCount + action.framesCount
-      )
 
-      is AddFrames -> state.copy(
-//        frames = state.mutateFrames {
-//          addAll(action.frames)
-//        }
+      is GenerateDummyFrames -> state.updateEditorConfig(
+        isLoading = true
       )
+      is AddFrames -> state
 
       TransformModeClick -> state.updateEditorConfig(
         currentMode = Transform
@@ -425,8 +425,9 @@ class CanvasFeature @Inject constructor(
       )
 
       UpdateCurrentFrames -> state.copy(
-        currentFrame = currentFrame,
-        previousFrame = framesRepository.frames.getOrNull(state.currentFrameIndex - 1),
+        currentFrame = framesRepository.frames[state.currentFrameIndex].materialize() as RealFrame,
+        previousFrame = framesRepository.frames.getOrNull(state.currentFrameIndex - 1)
+          ?.materialize() as? RealFrame,
         maxFramesCount = framesRepository.frames.size,
       )
     }
