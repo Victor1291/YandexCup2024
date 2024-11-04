@@ -450,7 +450,7 @@ private fun CanvasScreen(
         ModalBottomSheet(
           modifier = Modifier
             .statusBarsPadding(),
-          sheetState = rememberModalBottomSheetState(),
+          sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
           windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom),
           onDismissRequest = {
             hideFrames()
