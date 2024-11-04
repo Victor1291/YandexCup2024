@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -78,6 +79,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   editorConfiguration: EditorConfiguration,
   onBrushSizeClick: () -> Unit,
 ) {
+  val context = LocalContext.current
   Box(
     modifier = Modifier
       .semantics {
@@ -138,6 +140,8 @@ private fun EditorButtons(
   onColorClick: () -> Unit,
   onShapesClick: () -> Unit = {},
 ) {
+  val context = LocalContext.current
+
   ActionIcon(
     icon = R.drawable.pencil,
     onClick = onPencilClick,
