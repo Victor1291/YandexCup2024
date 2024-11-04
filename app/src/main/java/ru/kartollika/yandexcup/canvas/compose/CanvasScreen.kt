@@ -68,7 +68,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -298,8 +297,12 @@ fun shareGif(context: Context, file: File) {
     )
 
     intentShareFile.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_gif_extra_message))
-    context.startActivity(Intent.createChooser(intentShareFile,
-      context.getString(R.string.share_gif_chooser_title)))
+    context.startActivity(
+      Intent.createChooser(
+        intentShareFile,
+        context.getString(R.string.share_gif_chooser_title)
+      )
+    )
   }
 }
 
@@ -706,14 +709,12 @@ private fun BoxScope.Pickers(
         Color.Black,
       ),
       customColorItem = {
-        Icon(
+        ActionIcon(
           modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .clickable { onCustomColorClick() },
-          painter = painterResource(R.drawable.palette),
-          contentDescription = stringResource(R.string.open_palette),
-          tint = Color.White,
+            .size(32.dp),
+          onClick = onCustomColorClick,
+          icon = R.drawable.palette,
+          tint = Color.White
         )
       },
       fastColorClicked = onFastColorClicked,
