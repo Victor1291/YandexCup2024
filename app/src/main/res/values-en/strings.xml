@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">YandexCup2024</string>
+  <string name="mode_transform">Transform mode</string>
+  <string name="brush_size">Brush size</string>
+  <string name="mode_draw">Draw mode</string>
+  <string name="mode_erase">Erase mode</string>
+  <string name="insert_shape">Insert a shape</string>
+  <string name="pick_color">Pick a color</string>
+  <string name="share_gif_extra_message">Look what an incredible animation I did!</string>
+  <string name="share_gif_chooser_title">Share GIF</string>
+  <string name="dummy_frames_create">Generate</string>
+  <string name="redo_action">Redo action</string>
+  <string name="dummy_frames_title">Generate dummy frames</string>
+  <string name="dummy_frames_description">Put the number of dummy frames to generate</string>
+  <string name="share_gif">Share GIF</string>
+  <string name="open_palette">Open color palette</string>
+  <string name="reset_transform">Reset transformation</string>
+  <string name="reset">Reset</string>
+  <string name="apply_color">Pick</string>
+  <string name="dummy_frames_to_generation">Get dummy frames</string>
+  <string name="delete_frames">Delete frames</string>
+  <string name="frame_by_index">Frame %1$s</string>
+  <string name="delete_frame">Delete frame</string>
+  <string name="square">Square</string>
+  <string name="circle">Circle</string>
+  <string name="triangle">Triangle</string>
+  <string name="arrow">Arrow</string>
+  <string name="straight_line">Straight line</string>
+  <string name="loading_in_progress">Loading in progress. Please wait</string>
+  <string name="stop_gif">Stop GIF</string>
+  <string name="run_gif">Start GIF</string>
+  <string name="delete_current_frame">Delete this frame</string>
+  <string name="add_frame">Add new frame</string>
+  <string name="open_frames">Open frames screen</string>
+  <string name="duplicate_frame">Duplicate this frame</string>
+  <string name="undo_action">Undo action</string>
+</resources>

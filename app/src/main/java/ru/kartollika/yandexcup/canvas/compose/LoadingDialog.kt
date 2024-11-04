@@ -10,9 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import ru.kartollika.yandexcup.R
 
 @Composable
 fun LoadingDialog(modifier: Modifier = Modifier) {
@@ -38,7 +40,7 @@ fun LoadingDialog(modifier: Modifier = Modifier) {
         CircularProgressIndicator()
 
         Text(
-          text = "Идет загрузка",
+          text = stringResource(R.string.loading_in_progress),
         )
       }
     }

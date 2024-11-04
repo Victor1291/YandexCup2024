@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Constraints
@@ -67,7 +68,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
         } else {
           MaterialTheme.colorScheme.onSurface
         },
-        contentDescription = "Режим трансформации"
+        contentDescription = stringResource(R.string.mode_transform)
       )
     }
   )
@@ -80,7 +81,7 @@ import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
   Box(
     modifier = Modifier
       .semantics {
-        contentDescription = "Размер кисти"
+        contentDescription = context.getString(R.string.brush_size)
       },
     contentAlignment = Alignment.Center
   ) {
@@ -147,7 +148,7 @@ private fun EditorButtons(
     } else {
       MaterialTheme.colorScheme.onSurface
     },
-    contentDescription = "Режим рисования"
+    contentDescription = stringResource(R.string.mode_draw)
   )
 
   ActionIcon(
@@ -160,7 +161,7 @@ private fun EditorButtons(
     } else {
       MaterialTheme.colorScheme.onSurface
     },
-    contentDescription = "Режим стирания"
+    contentDescription = stringResource(R.string.mode_erase)
   )
 
   ActionIcon(
@@ -168,7 +169,7 @@ private fun EditorButtons(
     onClick = onShapesClick,
     modifier = Modifier
       .size(32.dp),
-    contentDescription = "Вставить фигуру"
+    contentDescription = stringResource(R.string.insert_shape)
   )
 
   Spacer(
@@ -186,7 +187,7 @@ private fun EditorButtons(
         onColorClick()
       }
       .semantics {
-        contentDescription = "Выбрать цвет"
+        contentDescription = context.getString(R.string.pick_color)
       },
   )
 }

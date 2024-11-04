@@ -3,6 +3,7 @@ package ru.kartollika.yandexcup.canvas.compose.controls
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.ActionIcon
@@ -64,7 +65,7 @@ private fun AnimationButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = editorConfiguration.isPreviewAnimation,
-    contentDescription = "Остановить анимацию GIF"
+    contentDescription = stringResource(R.string.stop_gif)
   )
 
   ActionIcon(
@@ -73,7 +74,7 @@ private fun AnimationButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = !editorConfiguration.isPreviewAnimation,
-    contentDescription = "Запустить анимацию GIF"
+    contentDescription = stringResource(R.string.run_gif)
   )
 }
 
@@ -91,7 +92,7 @@ private fun FramesButtons(
     onClick = deleteFrame,
     modifier = Modifier
       .size(32.dp),
-    contentDescription = "Удалить текущий кадр"
+    contentDescription = stringResource(R.string.delete_current_frame)
   )
 
   ActionIcon(
@@ -99,7 +100,7 @@ private fun FramesButtons(
     onClick = addFrame,
     modifier = Modifier
       .size(32.dp),
-    contentDescription = "Добавить кадр"
+    contentDescription = stringResource(R.string.add_frame)
   )
 
   ActionIcon(
@@ -107,7 +108,7 @@ private fun FramesButtons(
     onClick = showFrames,
     modifier = Modifier
       .size(32.dp),
-    contentDescription = "Открыть раскадровку"
+    contentDescription = stringResource(R.string.open_frames)
   )
 
   ActionIcon(
@@ -115,7 +116,7 @@ private fun FramesButtons(
     onClick = copyFrame,
     modifier = Modifier
       .size(32.dp),
-    contentDescription = "Дублировать текущий кадр"
+    contentDescription = stringResource(R.string.duplicate_frame)
   )
 }
 
@@ -134,7 +135,7 @@ private fun UndoRedoButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = canUndo,
-    contentDescription = "Отменить действие"
+    contentDescription = stringResource(R.string.undo_action)
   )
 
   ActionIcon(
@@ -143,6 +144,6 @@ private fun UndoRedoButtons(
     modifier = Modifier
       .size(32.dp),
     enabled = canRedo,
-    contentDescription = "Вернуть отмененное действие"
+    contentDescription = stringResource(R.string.redo_action)
   )
 }

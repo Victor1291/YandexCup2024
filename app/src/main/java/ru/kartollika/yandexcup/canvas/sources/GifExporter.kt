@@ -117,8 +117,4 @@ class GifExporter @Inject constructor(
       outputStream.close()
       file
     }
-
-  companion object {
-    private const val GIFS_DIR = "gifs"
-  }
 }

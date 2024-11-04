@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,7 +70,7 @@ fun FramesScreen(
           }
         ) {
           Text(
-            text = "Создать dummy кадры",
+            text = stringResource(R.string.dummy_frames_to_generation),
             color = MaterialTheme.colorScheme.primary
           )
         }
@@ -81,7 +82,7 @@ fun FramesScreen(
           }
         ) {
           Text(
-            text = "Удалить кадры",
+            text = stringResource(R.string.delete_frames),
             color = Color.Red
           )
         }
@@ -159,7 +160,7 @@ fun FrameItem(
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Text(
-        text = "Кадр $index",
+        text = stringResource(R.string.frame_by_index, index),
       )
 
       if (isCurrentFrame) {
@@ -173,7 +174,7 @@ fun FrameItem(
 
     ActionIcon(
       onClick = deleteFrame,
-      contentDescription = "Удалить кадр",
+      contentDescription = stringResource(R.string.delete_frame),
       icon = R.drawable.bin
     )
   }

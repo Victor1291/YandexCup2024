@@ -46,12 +46,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.collectLatest
+import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 import ru.kartollika.yandexcup.core.colorIntToHSL
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
@@ -62,7 +64,7 @@ fun ColorsPicker(
   modifier: Modifier = Modifier,
   editorConfiguration: EditorConfiguration,
   smallPickerColors: ImmutableList<Color> = persistentListOf(),
-  customColorItem: @Composable() (() -> Unit)? = null,
+  customColorItem: @Composable (() -> Unit)? = null,
   fastColorClicked: (Color) -> Unit = {},
   pickColor: (Color) -> Unit = {},
   closeExpandedPicker: () -> Unit = {},
@@ -135,7 +137,7 @@ fun ColorsPicker(
             .height(52.dp),
           onClick = closeExpandedPicker
         ) {
-          Text("Принять")
+          Text(stringResource(R.string.apply_color))
         }
       }
     }

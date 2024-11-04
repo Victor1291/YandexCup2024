@@ -239,16 +239,12 @@ class CanvasFeature @Inject constructor(
             )
             consumeAction(AddFrames(frames))
             processed += chunkSize
-            println("dummy creator: processed $processed")
           }
       } catch (e: Exception) {
         Log.e("dummy creator", "Error", e)
-        println("dummy creator: processed with error $processed")
       } finally {
         consumeAction(FinishLoading)
       }
-
-      println("dummy creator: processed $processed")
     }
   }
 

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.Shape
@@ -38,7 +39,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.square,
           tint = Color.White,
-          contentDescription = "Квадрат"
+          contentDescription = stringResource(R.string.square)
         )
 
         ActionIcon(
@@ -49,7 +50,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.circle,
           tint = Color.White,
-          contentDescription = "Круг"
+          contentDescription = stringResource(R.string.circle)
         )
 
         ActionIcon(
@@ -60,7 +61,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.triangle,
           tint = Color.White,
-          contentDescription = "Треугольник"
+          contentDescription = stringResource(R.string.triangle)
         )
 
         ActionIcon(
@@ -71,7 +72,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.arrow_up,
           tint = Color.White,
-          contentDescription = "Стрелка"
+          contentDescription = stringResource(R.string.arrow)
         )
 
         ActionIcon(
@@ -83,7 +84,7 @@ fun InstrumentsPicker(
           },
           icon = R.drawable.straight,
           tint = Color.White,
-          contentDescription = "Прямая линия"
+          contentDescription = stringResource(R.string.straight_line)
         )
       }
     }

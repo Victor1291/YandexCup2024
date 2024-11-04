@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Controls(
   modifier: Modifier = Modifier,
-  startControls: @Composable() (RowScope.() -> Unit) = {},
-  centerControls: @Composable() (RowScope.() -> Unit) = {},
-  endControls: @Composable() (RowScope.() -> Unit) = {},
+  startControls: @Composable (RowScope.() -> Unit) = {},
+  centerControls: @Composable (RowScope.() -> Unit) = {},
+  endControls: @Composable (RowScope.() -> Unit) = {},
   startSpacedBy: Dp = 8.dp,
   centerSpacedBy: Dp = startSpacedBy,
   endSpacedBy: Dp = startSpacedBy,

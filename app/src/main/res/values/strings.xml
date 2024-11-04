@@ -1,3 +1,37 @@
 <resources>
   <string name="app_name">YandexCup2024</string>
+  <string name="mode_transform">Режим трансформации</string>
+  <string name="brush_size">Размер кисти</string>
+  <string name="mode_draw">Режим рисования</string>
+  <string name="mode_erase">Режим стирания</string>
+  <string name="insert_shape">Вставить фигуру</string>
+  <string name="pick_color">Выбрать цвет</string>
+  <string name="share_gif_extra_message">Смотри какая анимация получилась!</string>
+  <string name="share_gif_chooser_title">Поделиться анимацией GIF</string>
+  <string name="dummy_frames_create">Создать</string>
+  <string name="dummy_frames_description">Введите число новых кадров с генерацией случайного контента</string>
+  <string name="share_gif">Поделиться GIF</string>
+  <string name="open_palette">Открыть палитру</string>
+  <string name="reset_transform">Сбросить трансформирование</string>
+  <string name="reset">Сброс</string>
+  <string name="apply_color">Выбрать</string>
+  <string name="dummy_frames_to_generation">Создать dummy кадры</string>
+  <string name="delete_frames">Удалить кадры</string>
+  <string name="frame_by_index">Кадр %1$s</string>
+  <string name="delete_frame">Удалить кадр</string>
+  <string name="square">Квадрат</string>
+  <string name="circle">Круг</string>
+  <string name="triangle">Треугольник</string>
+  <string name="arrow">Стрелка</string>
+  <string name="straight_line">Прямая линия</string>
+  <string name="loading_in_progress">Идет загрузка</string>
+  <string name="stop_gif">Остановить анимацию GIF</string>
+  <string name="run_gif">Запустить анимацию GIF</string>
+  <string name="delete_current_frame">Удалить текущий кадр</string>
+  <string name="add_frame">Добавить кадр</string>
+  <string name="open_frames">Открыть раскадровку</string>
+  <string name="duplicate_frame">Дублировать текущий кадр</string>
+  <string name="undo_action">Отменить действие</string>
+  <string name="redo_action">Вернуть отмененное действие</string>
+  <string name="dummy_frames_title">Введите число новых кадров с генерацией случайного контента</string>
 </resources>

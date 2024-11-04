@@ -69,6 +69,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
@@ -114,7 +115,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import ru.kartollika.yandexcup.components.Slider as YandexcupComponentsSlider
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CanvasScreen(
   modifier: Modifier = Modifier,
@@ -297,8 +297,9 @@ fun shareGif(context: Context, file: File) {
       )
     )
 
-    intentShareFile.putExtra(Intent.EXTRA_TEXT, "Смотри какая анимация получилась!")
-    context.startActivity(Intent.createChooser(intentShareFile, "Поделиться анимацией GIF"))
+    intentShareFile.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_gif_extra_message))
+    context.startActivity(Intent.createChooser(intentShareFile,
+      context.getString(R.string.share_gif_chooser_title)))
   }
 }
 
@@ -410,17 +411,17 @@ private fun CanvasScreen(
                 generateDummyFramesDialogVisible = false
               }
             ) {
-              Text("Создать")
+              Text(stringResource(R.string.dummy_frames_create))
             }
           },
           title = {
-            Text("Генерация кадров")
+            Text(stringResource(R.string.dummy_frames_title))
           },
           text = {
             Column(
               verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-              Text("Введите число новых кадров с генерацией случайного контента")
+              Text(stringResource(R.string.dummy_frames_description))
               TextField(
                 modifier = Modifier,
                 value = dummyFramesToGenerate,
@@ -658,7 +659,7 @@ private fun BottomControls(
               MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
               CircleShape
             ),
-          contentDescription = "Поделиться GIF"
+          contentDescription = stringResource(R.string.share_gif)
         )
       }
     } else {
@@ -711,7 +712,7 @@ private fun BoxScope.Pickers(
             .clip(CircleShape)
             .clickable { onCustomColorClick() },
           painter = painterResource(R.drawable.palette),
-          contentDescription = "Открыть палитру",
+          contentDescription = stringResource(R.string.open_palette),
           tint = if (canvasState.editorConfiguration.colorPickerExpanded) {
             MaterialTheme.colorScheme.primary
           } else {
@@ -832,11 +833,11 @@ private fun Canvas(
       ) {
         Icon(
           Icons.Default.Refresh,
-          contentDescription = "Сбросить трансформирование",
+          contentDescription = stringResource(R.string.reset_transform),
           tint = Color.White,
         )
         Text(
-          text = "Reset",
+          text = stringResource(R.string.reset),
           color = Color.White
         )
       }
