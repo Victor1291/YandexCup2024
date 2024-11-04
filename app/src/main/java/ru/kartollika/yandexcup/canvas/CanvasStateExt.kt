@@ -2,61 +2,8 @@ package ru.kartollika.yandexcup.canvas
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
-import ru.kartollika.yandexcup.canvas.FrameIndex.Current
-import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode
-import ru.kartollika.yandexcup.canvas.mvi.Frame
-
-fun CanvasState.mutateFrames(block: MutableList<Frame>.() -> Unit) =
-  frames.toMutableList().apply(block).toImmutableList()
-
-fun CanvasState.copyFrame() = copy(
-  frames = mutateFrames {
-    add(
-      currentFrame.copy()
-    )
-  },
-  currentFrameIndex = frames.lastIndex + 1
-)
-
-fun CanvasState.addNewFrame(): CanvasState {
-  val newFrame = Frame()
-  return copy(
-    frames = mutateFrames {
-      add(newFrame)
-    },
-    currentFrameIndex = frames.lastIndex + 1
-  )
-}
-
-fun CanvasState.deleteAllFrames(): CanvasState {
-  return copy(
-    frames = persistentListOf(Frame()),
-    currentFrameIndex = 0,
-    maxFramesCount = 1
-  )
-}
-
-fun CanvasState.deleteFrame(frameIndex: FrameIndex): CanvasState {
-  return if (frames.size == 1) {
-    deleteAllFrames()
-  } else {
-    val indexToRemove = when (frameIndex) {
-      is Current -> currentFrameIndex
-      is Index -> frameIndex.index
-    }
-    copy(
-      frames = mutateFrames {
-        removeAt(indexToRemove)
-      },
-      currentFrameIndex = frames.lastIndex - 1,
-      maxFramesCount = maxFramesCount - 1
-    )
-  }
-}
 
 fun CanvasState.hidePickers(): CanvasState = updateEditorConfig(
   colorPickerVisible = false,

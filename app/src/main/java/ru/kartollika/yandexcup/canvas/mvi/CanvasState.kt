@@ -7,35 +7,22 @@ import androidx.compose.ui.unit.IntSize
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import ru.kartollika.yandexcup.mvi2.MVIState
-import kotlin.math.max
 
 @Immutable
 data class CanvasState(
-  val frames: Frames = persistentListOf(Frame()),
   val currentFrameIndex: Int = 0,
   val editorConfiguration: EditorConfiguration = EditorConfiguration(),
   val framesSheetVisible: Boolean = false,
   val maxFramesCount: Int = 1,
+  val currentFrame: Frame,
+  val previousFrame: Frame? = null
 ) : MVIState {
-
-  /**
-   * Current count of frames
-   * frames.size is actual and real frames
-   * maxFramesCount may be a higher value because it imitates ghost frames for better performance
-   */
-  val framesCount = max(frames.size, maxFramesCount)
 
   val canUndo: Boolean
     get() = currentFrame.paths.isNotEmpty()
 
   val canRedo: Boolean
     get() = currentFrame.undoPaths?.isNotEmpty() == true
-
-  val currentFrame: Frame
-    get() = frames[currentFrameIndex]
-
-  val previousFrame: Frame?
-    get() = frames.getOrNull(currentFrameIndex - 1)
 }
 
 @Immutable
@@ -83,7 +70,7 @@ data class EditorConfiguration(
   val brushSizePickerVisible: Boolean = false,
   val currentMode: DrawMode = DrawMode.Pencil,
   val animationDelay: Int = 200,
-  val brushSize: Float = 10f,
+  val brushSize: Float = 30f,
   val shapesPickerVisible: Boolean = false,
   val dummyFramesCountInputVisible: Boolean = false,
   val canvasSize: IntSize = IntSize(0, 0)

@@ -6,13 +6,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ru.kartollika.yandexcup.canvas.FrameIndex.Current
+import ru.kartollika.yandexcup.canvas.FrameIndex.Index
 import ru.kartollika.yandexcup.canvas.Shape
-import ru.kartollika.yandexcup.canvas.addNewFrame
-import ru.kartollika.yandexcup.canvas.copyFrame
-import ru.kartollika.yandexcup.canvas.deleteAllFrames
-import ru.kartollika.yandexcup.canvas.deleteFrame
 import ru.kartollika.yandexcup.canvas.hidePickers
-import ru.kartollika.yandexcup.canvas.mutateFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AddNewFrame
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.AnimationDelayChange
@@ -47,6 +44,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StartAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.StopAnimation
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.TransformModeClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UndoChange
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.UpdateCurrentFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShareGif
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
@@ -56,6 +54,7 @@ import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
 import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator
 import ru.kartollika.yandexcup.canvas.sources.EditorConfigurationParser
+import ru.kartollika.yandexcup.canvas.sources.FramesRepository
 import ru.kartollika.yandexcup.canvas.sources.GifExporter
 import ru.kartollika.yandexcup.canvas.sources.ShapeDrawer
 import ru.kartollika.yandexcup.canvas.updateEditorConfig
@@ -70,8 +69,12 @@ class CanvasFeature @Inject constructor(
   private val dummyPathsGenerator: DummyPathsGenerator,
   private val editorConfigurationParser: EditorConfigurationParser,
   private val shapeDrawer: ShapeDrawer,
+  private val framesRepository: FramesRepository,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
-  override fun initialState(): CanvasState = CanvasState()
+  override fun initialState(): CanvasState = CanvasState(currentFrame = Frame())
+
+  private val currentFrame: Frame
+    get() = framesRepository.frames[state.value.currentFrameIndex]
 
   override suspend fun processAction(state: CanvasState, action: CanvasAction) {
     when (action) {
@@ -80,7 +83,19 @@ class CanvasFeature @Inject constructor(
         startFramesAnimation()
       }
 
-      is DrawFinish -> Unit
+      is DrawFinish -> {
+        val frame = currentFrame
+
+        val paths = frame.paths.toMutableList().apply {
+          action.pathWithProperties.let(this::add)
+        }.toImmutableList()
+
+        framesRepository.frames[state.currentFrameIndex] = frame.copy(
+          paths = paths,
+          undoPaths = null,
+        )
+      }
+
       is EraseClick -> {
         consumeAction(HideColorPicker)
       }
@@ -90,22 +105,88 @@ class CanvasFeature @Inject constructor(
         consumeAction(HideColorPicker)
       }
 
-      is UndoChange -> Unit
-      is RedoChange -> Unit
+      is UndoChange -> {
+        val frame = currentFrame
+        val pathToUndo = frame.paths.last()
+
+        framesRepository.frames[state.currentFrameIndex] = frame.copy(
+          paths = frame.paths.subList(0, frame.paths.lastIndex),
+          undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
+        )
+      }
+
+      is RedoChange -> {
+        val frame = currentFrame
+
+        framesRepository.frames[state.currentFrameIndex] =
+          frame.copy(
+            paths = (frame.paths + frame.undoPaths!!.last()).toImmutableList(),
+            undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
+              .takeIf { it.isNotEmpty() }
+          )
+      }
+
       is OnColorChanged -> Unit
-      is AddNewFrame -> Unit
-      is DeleteFrame -> Unit
+      is AddNewFrame -> {
+        framesRepository.frames.add(Frame())
+      }
+
+      is DeleteFrame -> {
+        val frames = framesRepository.frames
+
+        return if (frames.size == 1) {
+          consumeAction(DeleteAllFrames)
+        } else {
+          val indexToRemove = when (val frameIndex = action.frameIndex) {
+            is Current -> state.currentFrameIndex
+            is Index -> frameIndex.index
+          }
+
+          framesRepository.frames.removeAt(indexToRemove)
+          consumeAction(ChangeCurrentFrame(frames.lastIndex))
+        }
+      }
+
       is StopAnimation -> Unit
       is ChangeCurrentFrame -> Unit
       is AnimationDelayChange -> Unit
-      CopyFrame -> Unit
+      CopyFrame -> {
+        framesRepository.frames.add(
+          currentFrame.copy()
+        )
+        consumeAction(ChangeCurrentFrame(state.currentFrameIndex + 1))
+      }
+
       ShowFrames -> Unit
       HideFrames -> Unit
       is SelectFrame -> Unit
-      is DeleteAllFrames -> Unit
+      is DeleteAllFrames -> {
+        framesRepository.frames.clear()
+        framesRepository.frames.add(Frame())
+        consumeAction(ChangeCurrentFrame(0))
+      }
       is HideColorPicker -> Unit
       ShowBrushSizePicker -> Unit
-      is ChangeBrushSize -> Unit
+      is ChangeBrushSize -> {
+        if (state.editorConfiguration.currentMode != Transform) return
+
+        val paths = currentFrame.paths
+        val frame = currentFrame
+
+        framesRepository.frames[state.currentFrameIndex] = frame.copy(
+          paths = paths.replace(
+            replaceIndex = paths.lastIndex,
+            newItem = { path ->
+              path.copy(
+                properties = path.properties.copy(
+                  brushSize = state.editorConfiguration.brushSize
+                )
+              )
+            }
+          ).toImmutableList()
+        )
+      }
+
       HideBrushSizePicker -> Unit
       CustomColorClick -> Unit
       ShowColorPicker -> Unit
@@ -123,7 +204,17 @@ class CanvasFeature @Inject constructor(
       TransformModeClick -> Unit
       is CanvasMeasured -> Unit
       CloseExpandedColorPicker -> Unit
+      UpdateCurrentFrames -> Unit
     }
+
+    // Update state's currentFrame and previousFrame after each action
+    if (action !is UpdateCurrentFrames) {
+      updateCurrentFrame()
+    }
+  }
+
+  private fun updateCurrentFrame() {
+    consumeAction(UpdateCurrentFrames)
   }
 
   private fun mockDummyFrames(framesCount: Int) {
@@ -159,7 +250,7 @@ class CanvasFeature @Inject constructor(
   private suspend fun processExportToGif() {
     val file = gifExporter.export(
       fileName = "animation.gif",
-      frames = state.value.frames,
+      frames = framesRepository.frames,
       canvasSize = state.value.editorConfiguration.canvasSize,
       delay = state.value.editorConfiguration.animationDelay
     )
@@ -182,11 +273,13 @@ class CanvasFeature @Inject constructor(
 
   private suspend fun startFramesAnimation() = coroutineScope {
     launch {
+      val maxIndex = framesRepository.frames.size
       var frameIndex = 0
+
       while (state.value.editorConfiguration.isPreviewAnimation) {
         consumeAction(ChangeCurrentFrame(frameIndex))
         delay(state.value.editorConfiguration.animationDelay.milliseconds)
-        frameIndex = (frameIndex + 1) % state.value.frames.size
+        frameIndex = (frameIndex + 1) % maxIndex
       }
     }
   }
@@ -194,23 +287,7 @@ class CanvasFeature @Inject constructor(
   override fun reduce(state: CanvasState, action: CanvasAction): CanvasState {
     return when (action) {
       is DrawStart -> state.hidePickers()
-      is DrawFinish -> {
-        state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame: Frame ->
-              val paths = frame.paths.toMutableList().apply {
-                action.pathWithProperties.let(this::add)
-              }.toImmutableList()
-
-              frame.copy(
-                paths = paths,
-                undoPaths = null,
-              )
-            }
-          ).toImmutableList()
-        )
-      }
+      is DrawFinish -> state
 
       EraseClick -> state.updateEditorConfig(
         currentMode = Erase
@@ -226,42 +303,18 @@ class CanvasFeature @Inject constructor(
         currentMode = Pencil
       )
 
-      UndoChange -> {
-        state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              val pathToUndo = frame.paths.last()
-              frame.copy(
-                paths = frame.paths.subList(0, frame.paths.lastIndex),
-                undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
-              )
-            }
-          ).toImmutableList()
-        )
-      }
-
-      RedoChange -> {
-        state.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              frame.copy(
-                paths = (frame.paths + frame.undoPaths!!.last()).toImmutableList(),
-                undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
-                  .takeIf { it.isNotEmpty() }
-              )
-            }
-          ).toImmutableList(),
-        )
-      }
+      UndoChange -> state
+      RedoChange -> state
 
       is OnColorChanged -> state.updateEditorConfig(
         color = action.color,
       )
 
-      AddNewFrame -> state.addNewFrame()
-      is DeleteFrame -> state.deleteFrame(action.frameIndex)
+      AddNewFrame -> state.copy(
+        currentFrameIndex = framesRepository.frames.lastIndex + 1
+      )
+
+      is DeleteFrame -> state
 
       StartAnimation -> {
         state.updateEditorConfig(
@@ -273,7 +326,7 @@ class CanvasFeature @Inject constructor(
         editorConfiguration = state.editorConfiguration.copy(
           isPreviewAnimation = false,
         ),
-        currentFrameIndex = state.frames.lastIndex
+        currentFrameIndex = framesRepository.frames.lastIndex
       )
 
       is ChangeCurrentFrame -> state.copy(
@@ -284,7 +337,7 @@ class CanvasFeature @Inject constructor(
         animationDelay = action.animationDelay.roundToInt()
       )
 
-      CopyFrame -> state.copyFrame()
+      CopyFrame -> state
 
       ShowFrames -> state.copy(
         framesSheetVisible = true
@@ -299,7 +352,9 @@ class CanvasFeature @Inject constructor(
         framesSheetVisible = false
       )
 
-      DeleteAllFrames -> state.deleteAllFrames()
+      DeleteAllFrames -> state.copy(
+        currentFrameIndex = 0,
+      )
 
       is ShowColorPicker -> state.openColorPicker()
       is ShowBrushSizePicker -> {
@@ -321,34 +376,9 @@ class CanvasFeature @Inject constructor(
       is HideColorPicker -> state.hidePickers()
       HideBrushSizePicker -> state.hidePickers()
 
-      is ChangeBrushSize -> {
-        val updatedState = state.updateEditorConfig(
-          brushSize = action.size,
-        )
-
-        if (state.editorConfiguration.currentMode != Transform) return updatedState
-
-        return updatedState.copy(
-          frames = state.frames.replace(
-            replaceIndex = state.currentFrameIndex,
-            newItem = { frame ->
-              val paths = frame.paths
-              frame.copy(
-                paths = paths.replace(
-                  replaceIndex = paths.lastIndex,
-                  newItem = { path ->
-                    path.copy(
-                      properties = path.properties.copy(
-                        brushSize = updatedState.editorConfiguration.brushSize
-                      )
-                    )
-                  }
-                ).toImmutableList()
-              )
-            }
-          ).toImmutableList()
-        )
-      }
+      is ChangeBrushSize -> state.updateEditorConfig(
+        brushSize = action.size,
+      )
 
       CustomColorClick -> state.updateEditorConfig(
         colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
@@ -365,13 +395,13 @@ class CanvasFeature @Inject constructor(
       // TODO Отобразить диалог с лоадером
       ExportToGif -> state
       is GenerateDummyFrames -> state.copy(
-        maxFramesCount = state.framesCount + action.framesCount
+//        maxFramesCount = state.framesCount + action.framesCount
       )
 
       is AddFrames -> state.copy(
-        frames = state.mutateFrames {
-          addAll(action.frames)
-        }
+//        frames = state.mutateFrames {
+//          addAll(action.frames)
+//        }
       )
 
       TransformModeClick -> state.updateEditorConfig(
@@ -384,6 +414,12 @@ class CanvasFeature @Inject constructor(
 
       CloseExpandedColorPicker -> state.updateEditorConfig(
         colorPickerExpanded = false
+      )
+
+      UpdateCurrentFrames -> state.copy(
+        currentFrame = currentFrame,
+        previousFrame = framesRepository.frames.getOrNull(state.currentFrameIndex - 1),
+        maxFramesCount = framesRepository.frames.size,
       )
     }
   }

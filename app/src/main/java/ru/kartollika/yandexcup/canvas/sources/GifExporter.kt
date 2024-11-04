@@ -18,7 +18,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.kartollika.yandexcup.R
-import ru.kartollika.yandexcup.canvas.mvi.Frames
+import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.core.AnimatedGifEncoder
 import java.io.File
 import java.io.OutputStream
@@ -29,7 +29,7 @@ class GifExporter @Inject constructor(
   private val context: Context,
 ) {
   suspend fun export(
-    frames: Frames,
+    frames: List<Frame>,
     canvasSize: IntSize,
     delay: Int = 0,
     fileName: String = "gif",

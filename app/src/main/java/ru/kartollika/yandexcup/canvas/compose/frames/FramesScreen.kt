@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,18 +25,21 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ru.kartollika.yandexcup.R
 import ru.kartollika.yandexcup.canvas.compose.DrawingCanvas
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
 import ru.kartollika.yandexcup.canvas.mvi.Frame
 import ru.kartollika.yandexcup.canvas.rememberCanvasDrawState
+import ru.kartollika.yandexcup.canvas.vm.FramesViewModel
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @Composable
 fun FramesScreen(
-  modifier: Modifier = Modifier,
   canvasState: CanvasState,
+  modifier: Modifier = Modifier,
+  viewModel: FramesViewModel = hiltViewModel(),
   selectFrame: (Int) -> Unit = {},
   deleteFrame: (Int) -> Unit = {},
   deleteAllFrames: () -> Unit = {},
@@ -81,7 +83,8 @@ fun FramesScreen(
       LazyColumn(
         modifier = Modifier.fillMaxSize()
       ) {
-        itemsIndexed(canvasState.frames) { index, frame ->
+        items(canvasState.maxFramesCount) { index ->
+          val frame = viewModel.getFrameAt(index)
           FrameItem(
             modifier = Modifier
               .fillMaxWidth()
@@ -105,7 +108,7 @@ fun FramesScreen(
 @Composable
 fun FrameItem(
   modifier: Modifier = Modifier,
-  frame: Frame,
+  frame: Frame?,
   index: Int,
   editorConfiguration: EditorConfiguration,
   deleteFrame: () -> Unit = {},
@@ -118,7 +121,7 @@ fun FrameItem(
     val density = LocalDensity.current
     DrawingCanvas(
       paths = {
-        frame.paths
+        frame?.paths
       },
       previousPaths = {
         null
@@ -156,7 +159,7 @@ private fun FramesScreenPreview() {
   YandexCup2024Theme {
     FramesScreen(
       modifier = Modifier.fillMaxSize(),
-      canvasState = CanvasState()
+      canvasState = CanvasState(currentFrame = Frame())
 //      frames = persistentListOf(Frame())
     )
   }

@@ -43,4 +43,5 @@ sealed interface CanvasAction : MVIAction {
   data object TransformModeClick : CanvasAction
   data class CanvasMeasured(val size: IntSize) : CanvasAction
   data object CloseExpandedColorPicker : CanvasAction
+  data object UpdateCurrentFrames : CanvasAction
 }
