@@ -43,6 +43,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +53,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.collectLatest
 import ru.kartollika.yandexcup.canvas.mvi.EditorConfiguration
+import ru.kartollika.yandexcup.core.colorIntToHSL
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +113,8 @@ fun ColorsPicker(
             .height(300.dp)
             .padding(horizontal = 8.dp)
             .clip(RoundedCornerShape(16.dp)),
-          onPickColor = pickColor
+          onPickColor = pickColor,
+          color = editorConfiguration.color
         )
 
         Spacer(
@@ -119,7 +122,11 @@ fun ColorsPicker(
             .fillMaxWidth()
             .height(30.dp)
             .background(editorConfiguration.color, RoundedCornerShape(16.dp))
-            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+            .border(
+              1.dp,
+              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+              RoundedCornerShape(16.dp)
+            )
         )
 
         Button(
@@ -152,6 +159,7 @@ fun ColorItem(
 @Composable
 fun HslPicker(
   modifier: Modifier = Modifier,
+  color: Color = Color.Unspecified,
   onPickColor: (Color) -> Unit = {},
 ) {
   var colorPickerSize by remember { mutableStateOf(IntSize.Zero) }
@@ -164,13 +172,30 @@ fun HslPicker(
     )
   }
 
+  LaunchedEffect(colorPickerSize) {
+    val hslColor = colorIntToHSL(color.toArgb())
+    val hueOffset = hslColor[0] * colorPickerSize.height / 360
+    val light = hslColor[2]
+
+    val lightOffset: Float = when {
+      light < 0.5f -> {
+        light * colorPickerSize.width / 2
+      }
+      light > 0.5f -> {
+        (colorPickerSize.width / 2) + light * colorPickerSize.width / 2
+      }
+      else -> (colorPickerSize.width / 2).toFloat()
+    }
+    dragOffset = Offset(lightOffset , hueOffset)
+  }
+
   LaunchedEffect(Unit) {
     snapshotFlow { dragOffset }
       .collectLatest {
         val hue = dragOffset.y * 360 / colorPickerSize.height
         val yPercent = dragOffset.x * 100 / colorPickerSize.width
         val light = when {
-          yPercent < 30f -> {
+          yPercent < 25f -> {
             yPercent / 50f
           }
 
@@ -180,10 +205,7 @@ fun HslPicker(
 
           else -> 0.5f
         }
-
-        println("light $light")
-        val color = Color.hsl(hue, 1f, 1f - light)
-        onPickColor(color)
+        onPickColor(Color.hsl(hue, 1f, 1f - light))
       }
   }
 

@@ -146,6 +146,7 @@ private fun EditorButtons(
       )
       .padding(4.dp)
       .background(editorConfiguration.color, CircleShape)
+      .clip(CircleShape)
       .clickable {
         onColorClick()
       },
