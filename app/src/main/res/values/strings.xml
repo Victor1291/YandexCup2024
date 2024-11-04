@@ -34,4 +34,7 @@
   <string name="undo_action">Отменить действие</string>
   <string name="redo_action">Вернуть отмененное действие</string>
   <string name="dummy_frames_title">Введите число новых кадров с генерацией случайного контента</string>
+  <string name="error_dummy_generate">Не удалось сгенерировать все dummy кадры</string>
+  <string name="error_export_gif">Не удалось сгенерировать GIF. Возможно кадров слишком много</string>
+  <string name="processed_progress">Сконвертировано: %1$s</string>
 </resources>

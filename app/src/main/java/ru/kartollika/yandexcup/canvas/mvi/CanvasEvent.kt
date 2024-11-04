@@ -5,4 +5,6 @@ import java.io.File
 
 sealed interface CanvasEvent : MVIEvent {
   data class ShareGif(val file: File) : CanvasEvent
+  data object ShowExportGifError : CanvasEvent
+  data object ShowGenerateDummyFramesError : CanvasEvent
 }

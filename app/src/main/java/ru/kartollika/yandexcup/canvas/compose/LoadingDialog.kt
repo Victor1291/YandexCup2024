@@ -1,6 +1,7 @@
 package ru.kartollika.yandexcup.canvas.compose
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,10 @@ import androidx.compose.ui.window.DialogProperties
 import ru.kartollika.yandexcup.R
 
 @Composable
-fun LoadingDialog(modifier: Modifier = Modifier) {
+fun LoadingDialog(
+  modifier: Modifier = Modifier,
+  appendText: String = "",
+) {
   Dialog(
     onDismissRequest = {
 
@@ -39,9 +43,17 @@ fun LoadingDialog(modifier: Modifier = Modifier) {
       ) {
         CircularProgressIndicator()
 
-        Text(
-          text = stringResource(R.string.loading_in_progress),
-        )
+        Column {
+          Text(
+            text = stringResource(R.string.loading_in_progress),
+          )
+
+          if (appendText.isNotEmpty()) {
+            Text(
+              text = appendText,
+            )
+          }
+        }
       }
     }
   }

@@ -35,4 +35,7 @@
   <string name="open_frames">Open frames screen</string>
   <string name="duplicate_frame">Duplicate this frame</string>
   <string name="undo_action">Undo action</string>
+  <string name="error_dummy_generate">Error occured while generating dummy frames</string>
+  <string name="error_export_gif">Error occured while generating GIF. Perhaps the number of frames is way too big</string>
+  <string name="processed_progress">Processed: %1$s</string>
 </resources>

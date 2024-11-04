@@ -45,4 +45,5 @@ sealed interface CanvasAction : MVIAction {
   data class CanvasMeasured(val size: IntSize) : CanvasAction
   data object CloseExpandedColorPicker : CanvasAction
   data object UpdateCurrentFrames : CanvasAction
+  data class GifExportProgressUpdated(val processed: Int) : CanvasAction
 }

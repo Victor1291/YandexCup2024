@@ -39,13 +39,14 @@ class GifExporter @Inject constructor(
     canvasSize: IntSize,
     delay: Int = 0,
     fileName: String = "gif",
-    scaleValue: Int = 3
+    scaleValue: Int = 3,
+    onProgress: (Int) -> Unit = {},
   ): File =
-    withContext(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
-      println(
-        throwable
-      )
-    }) {
+    withContext(
+      CoroutineExceptionHandler { _, throwable ->
+        println(throwable)
+      }
+    ) {
       val dir = context.filesDir
       val file = File(dir, fileName)
       val outputStream: OutputStream = file.outputStream()
@@ -62,6 +63,7 @@ class GifExporter @Inject constructor(
         strokeJoin = Join.ROUND
         isAntiAlias = true
       }
+      var processed = 0
 
       withContext(Dispatchers.Default) {
         frames.forEach { frame ->
@@ -110,6 +112,7 @@ class GifExporter @Inject constructor(
           }
           canvas.restoreToCount(save)
           gifEncoder.addFrame(bitmap)
+          onProgress(++processed)
         }
       }
 

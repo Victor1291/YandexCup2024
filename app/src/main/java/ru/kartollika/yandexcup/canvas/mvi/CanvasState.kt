@@ -17,6 +17,7 @@ data class CanvasState(
   val maxFramesCount: Int = 1,
   val currentFrame: RealFrame,
   val previousFrame: RealFrame? = null,
+  val gifExportProcessed: Int? = null,
 ) : MVIState {
 
   val canUndo: Boolean

@@ -2,6 +2,7 @@ package ru.kartollika.yandexcup.canvas.compose
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate
@@ -100,6 +101,8 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.PencilClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ShowFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShareGif
+import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShowExportGifError
+import ru.kartollika.yandexcup.canvas.mvi.CanvasEvent.ShowGenerateDummyFramesError
 import ru.kartollika.yandexcup.canvas.mvi.CanvasState
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Erase
 import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Pencil
@@ -244,6 +247,19 @@ fun CanvasScreen(
     eventConsumer.events.collect { event ->
       when (event) {
         is ShareGif -> shareGif(context, event.file)
+        is ShowExportGifError -> {
+          showToastError(
+            context = context,
+            message = context.getString(R.string.error_export_gif)
+          )
+        }
+
+        is ShowGenerateDummyFramesError -> {
+          showToastError(
+            context = context,
+            message = context.getString(R.string.error_dummy_generate)
+          )
+        }
       }
     }
   }
@@ -280,6 +296,10 @@ fun CanvasScreen(
     onCanvasSizeChanged = remember { ::onCanvasSizeChanged },
     closeExpandedColorPicker = remember { ::closeExpandedColorPicker }
   )
+}
+
+fun showToastError(context: Context, message: String) {
+  Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }
 
 fun shareGif(context: Context, file: File) {
@@ -469,7 +489,13 @@ private fun CanvasScreen(
   }
 
   if (canvasState.editorConfiguration.isLoading) {
-    LoadingDialog()
+    LoadingDialog(
+      appendText = if (canvasState.gifExportProcessed != null) {
+        stringResource(R.string.processed_progress, canvasState.gifExportProcessed)
+      } else {
+        ""
+      }
+    )
   }
 }
 
