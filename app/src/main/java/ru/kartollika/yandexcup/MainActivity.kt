@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
 import ru.kartollika.yandexcup.canvas.compose.CanvasScreen
 import ru.kartollika.yandexcup.ui.theme.YandexCup2024Theme
@@ -16,7 +15,6 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
-    WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
       YandexCup2024Theme {

@@ -73,5 +73,6 @@ data class EditorConfiguration(
   val brushSize: Float = 30f,
   val shapesPickerVisible: Boolean = false,
   val dummyFramesCountInputVisible: Boolean = false,
-  val canvasSize: IntSize = IntSize(0, 0)
+  val canvasSize: IntSize = IntSize(0, 0),
+  val isLoading: Boolean = false,
 )

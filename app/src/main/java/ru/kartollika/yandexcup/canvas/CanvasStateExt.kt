@@ -41,6 +41,7 @@ fun CanvasState.updateEditorConfig(
   shapesPickerVisible: Boolean = editorConfiguration.shapesPickerVisible,
   dummyFramesCountInputVisible: Boolean = editorConfiguration.dummyFramesCountInputVisible,
   canvasSize: IntSize = editorConfiguration.canvasSize,
+  isLoading: Boolean = editorConfiguration.isLoading,
 ) = copy(
   editorConfiguration = editorConfiguration.copy(
     isPreviewAnimation = isPreviewAnimation,
@@ -53,6 +54,7 @@ fun CanvasState.updateEditorConfig(
     brushSize = brushSize,
     shapesPickerVisible = shapesPickerVisible,
     dummyFramesCountInputVisible = dummyFramesCountInputVisible,
-    canvasSize = canvasSize
+    canvasSize = canvasSize,
+    isLoading = isLoading
   )
 )

@@ -25,6 +25,7 @@ import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawFinish
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.DrawStart
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.EraseClick
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.ExportToGif
+import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.FinishExportToGif
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.GenerateDummyFrames
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideBrushSizePicker
 import ru.kartollika.yandexcup.canvas.mvi.CanvasAction.HideColorPicker
@@ -205,6 +206,7 @@ class CanvasFeature @Inject constructor(
       is CanvasMeasured -> Unit
       CloseExpandedColorPicker -> Unit
       UpdateCurrentFrames -> Unit
+      FinishExportToGif -> Unit
     }
 
     // Update state's currentFrame and previousFrame after each action
@@ -256,6 +258,7 @@ class CanvasFeature @Inject constructor(
     )
 
     consumeEvent(ShareGif(file))
+    consumeAction(FinishExportToGif)
   }
 
   private fun drawShape(shape: Shape) {
@@ -393,7 +396,12 @@ class CanvasFeature @Inject constructor(
         currentMode = Transform
       )
       // TODO Отобразить диалог с лоадером
-      ExportToGif -> state
+      ExportToGif -> state.updateEditorConfig(
+        isLoading = true
+      )
+      FinishExportToGif-> state.updateEditorConfig(
+        isLoading = false
+      )
       is GenerateDummyFrames -> state.copy(
 //        maxFramesCount = state.framesCount + action.framesCount
       )
