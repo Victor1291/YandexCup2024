@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Paint.Cap.ROUND
+import android.graphics.Paint.Join
 import android.graphics.Paint.Style.STROKE
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
@@ -52,6 +54,8 @@ class GifExporter @Inject constructor(
 
       val paint = Paint().apply {
         style = STROKE
+        strokeCap = ROUND
+        strokeJoin = Join.ROUND
         isAntiAlias = true
       }
 
