@@ -713,11 +713,7 @@ private fun BoxScope.Pickers(
             .clickable { onCustomColorClick() },
           painter = painterResource(R.drawable.palette),
           contentDescription = stringResource(R.string.open_palette),
-          tint = if (canvasState.editorConfiguration.colorPickerExpanded) {
-            MaterialTheme.colorScheme.primary
-          } else {
-            Color.White
-          }
+          tint = Color.White,
         )
       },
       fastColorClicked = onFastColorClicked,
