@@ -829,9 +829,8 @@ private fun Canvas(
     ) {
       Row(
         modifier = Modifier
-          .background(Color.Gray, CircleShape)
-          .padding(4.dp)
-          .padding(horizontal = 8.dp)
+          .background(Color.Gray, RoundedCornerShape(16.dp))
+          .clip(RoundedCornerShape(16.dp))
           .clickable {
             coroutineScope.launch {
               launch {
@@ -852,16 +851,25 @@ private fun Canvas(
                 }
               }
             }
-          },
+          }
+          .padding(8.dp)
+          .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        Icon(Icons.Default.Refresh, contentDescription = "Reset transform")
-        Text("Reset")
+        Icon(
+          Icons.Default.Refresh,
+          contentDescription = "Reset transform",
+          tint = Color.White,
+        )
+        Text(
+          text = "Reset",
+          color = Color.White
+        )
       }
     }
 
     val isPreviewAnimation by
-      rememberUpdatedState(canvasState.editorConfiguration.isPreviewAnimation)
+    rememberUpdatedState(canvasState.editorConfiguration.isPreviewAnimation)
 
     DrawingCanvas(
       modifier = Modifier
