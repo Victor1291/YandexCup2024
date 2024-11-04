@@ -168,7 +168,7 @@ fun HslPicker(
     val rawOffset = dragOffset + offset
     dragOffset = rawOffset.copy(
       x = rawOffset.x.coerceIn(0f, colorPickerSize.width.toFloat()),
-      y = rawOffset.y.coerceIn(0f, colorPickerSize.width.toFloat()),
+      y = rawOffset.y.coerceIn(0f, colorPickerSize.height.toFloat()),
     )
   }
 
