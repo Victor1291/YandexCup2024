@@ -15,9 +15,8 @@ import androidx.compose.ui.input.pointer.positionChanged
 import kotlin.math.PI
 import kotlin.math.abs
 
-suspend fun PointerInputScope.detectPointerTransformGestures(
+suspend fun PointerInputScope.detectDragOrTransformGestures(
   panZoomLock: Boolean = false,
-  numberOfPointers: Int = 1,
   onDragStart: (Offset) -> Unit = {},
   onDrag: (Offset) -> Unit = {},
   onDragEnd: (PointerInputChange) -> Unit = {},
@@ -25,10 +24,6 @@ suspend fun PointerInputScope.detectPointerTransformGestures(
   onTransform:
     (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
 ) {
-  require(numberOfPointers > 0) {
-    "Number of minimum pointers should be greater than 0"
-  }
-
   awaitEachGesture {
     var rotation = 0f
     var zoom = 1f
@@ -53,7 +48,8 @@ suspend fun PointerInputScope.detectPointerTransformGestures(
     do {
       val event = awaitPointerEvent()
       val downPointerCount = event.changes.map { it.pressed }.size
-      val gesturePointersRequirementMet = downPointerCount > numberOfPointers
+      // 2 pointers is required for transform gesture
+      val gesturePointersRequirementMet = downPointerCount > 1
 
       // If any position change is consumed from another PointerInputChange
       // or pointer count requirement is not fulfilled
