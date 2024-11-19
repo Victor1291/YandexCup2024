@@ -8,8 +8,6 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerEventPass.Main
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.positionChange
@@ -20,16 +18,13 @@ import kotlin.math.abs
 suspend fun PointerInputScope.detectPointerTransformGestures(
   panZoomLock: Boolean = false,
   numberOfPointers: Int = 1,
-  pass: PointerEventPass = Main,
-  consume: Boolean = true,
   onDragStart: (Offset) -> Unit = {},
   onDrag: (Offset) -> Unit = {},
+  onDragEnd: (PointerInputChange) -> Unit = {},
   onDragCancelled: () -> Unit = {},
   onTransform:
-    (centroid: Offset, pan: Offset, zoom: Float, rotation: Float, mainPointer: PointerInputChange, changes: List<PointerInputChange>) -> Unit,
-  onDragEnd: (PointerInputChange) -> Unit = {},
+    (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
 ) {
-
   require(numberOfPointers > 0) {
     "Number of minimum pointers should be greater than 0"
   }
@@ -42,41 +37,32 @@ suspend fun PointerInputScope.detectPointerTransformGestures(
     val touchSlop = viewConfiguration.touchSlop
     var lockedToPanZoom = false
 
-    var gestureStarted = false
-    var dragStarted = false
+    var transformGestureStarted = false
+    var dragGestureStarted = false
 
     // Wait for at least one pointer to press down, and set first contact position
     val down: PointerInputChange = awaitFirstDown(
       requireUnconsumed = false,
-      pass = pass
     )
 
     var pointer = down
-    // Main pointer is the one that is down initially
     var pointerId = down.id
-    var unforgivingChange = 0f
-    val unforgivingChangeThreshold = 50f
+    var dragAmount = 0f
+    val dragAmountThreshold = 50f
 
     do {
-      val event = awaitPointerEvent(pass = pass)
-
-      val downPointerCount = event.changes.map {
-        it.pressed
-      }.size
-
-      val requirementFulfilled = downPointerCount > numberOfPointers
+      val event = awaitPointerEvent()
+      val downPointerCount = event.changes.map { it.pressed }.size
+      val gesturePointersRequirementMet = downPointerCount > numberOfPointers
 
       // If any position change is consumed from another PointerInputChange
       // or pointer count requirement is not fulfilled
-      val canceled =
-        event.changes.any { it.isConsumed }
+      val canceled = event.changes.any { it.isConsumed }
 
-      if (!canceled && requirementFulfilled && unforgivingChangeThreshold > unforgivingChange) {
-        gestureStarted = true
+      if (!canceled && gesturePointersRequirementMet && dragAmountThreshold > dragAmount) {
+        transformGestureStarted = true
         onDragCancelled()
-        // Get pointer that is down, if first pointer is up
-        // get another and use it if other pointers are also down
-        // event.changes.first() doesn't return same order
+
         val pointerInputChange =
           event.changes.firstOrNull { it.id == pointerId }
             ?: event.changes.first()
@@ -96,8 +82,7 @@ suspend fun PointerInputScope.detectPointerTransformGestures(
 
           val centroidSize = event.calculateCentroidSize(useCurrent = false)
           val zoomMotion = abs(1 - zoom) * centroidSize
-          val rotationMotion =
-            abs(rotation * PI.toFloat() * centroidSize / 180f)
+          val rotationMotion = abs(rotation * PI.toFloat() * centroidSize / 180f)
           val panMotion = pan.getDistance()
 
           if (zoomMotion > touchSlop ||
@@ -121,28 +106,24 @@ suspend fun PointerInputScope.detectPointerTransformGestures(
               panChange,
               zoomChange,
               effectiveRotation,
-              pointer,
-              event.changes
             )
           }
 
-          if (consume) {
-            event.changes.forEach {
-              if (it.positionChanged()) {
-                it.consume()
-              }
+          event.changes.forEach {
+            if (it.positionChanged()) {
+              it.consume()
             }
           }
         }
       } else {
         val change = event.changes.first()
-        if (!dragStarted) {
-          dragStarted = true
+        if (!dragGestureStarted) {
+          dragGestureStarted = true
           onDragStart(change.position)
         }
-        if (gestureStarted) return@awaitEachGesture
+        if (transformGestureStarted) return@awaitEachGesture
         onDrag(change.positionChange())
-        unforgivingChange += change.positionChange().getDistance()
+        dragAmount += change.positionChange().getDistance()
       }
     } while (!canceled && event.changes.any { it.pressed })
 
