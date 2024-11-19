@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.collections.immutable.ImmutableList
 import ru.kartollika.yandexcup.canvas.CanvasDrawUiState
@@ -71,8 +70,6 @@ fun DrawingCanvas(
             gesturePan: Offset,
             gestureZoom: Float,
             gestureRotation,
-            _,
-            changes: List<PointerInputChange>,
           ->
           onCanvasTransform(gestureCentroid, gesturePan, gestureZoom, gestureRotation)
         },
