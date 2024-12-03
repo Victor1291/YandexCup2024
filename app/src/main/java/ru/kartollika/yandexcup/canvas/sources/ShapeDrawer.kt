@@ -8,6 +8,7 @@ import ru.kartollika.yandexcup.canvas.Shape.Circle
 import ru.kartollika.yandexcup.canvas.Shape.Square
 import ru.kartollika.yandexcup.canvas.Shape.Straight
 import ru.kartollika.yandexcup.canvas.Shape.Triangle
+import ru.kartollika.yandexcup.canvas.Shape.Cubik
 import javax.inject.Inject
 
 class ShapeDrawer @Inject constructor() {
@@ -19,6 +20,7 @@ class ShapeDrawer @Inject constructor() {
       Triangle -> drawTriangle(path)
       Arrow -> drawArrow(path)
       Straight -> drawStraight(path)
+      Cubik -> drawCubik(path)
     }
     return path
   }
@@ -51,4 +53,12 @@ class ShapeDrawer @Inject constructor() {
     path.lineTo(0f, 250f)
     path.lineTo(100f, 100f)
   }
+
+  private fun drawCubik(path: Path) {
+    val cube = Cube(Point3D(200f, 200f, 200f), 200f)
+    cube.rotate(20f / 100, Point3D(1f, 0f, 0f))
+    cube.rotate(-20f / 100, Point3D(0f, 1f, 0f))
+    cube.drawPath(path)
+  }
+
 }

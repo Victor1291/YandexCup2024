@@ -6,4 +6,5 @@ sealed interface Shape {
   data object Triangle : Shape
   data object Straight : Shape
   data object Arrow : Shape
+  data object Cubik : Shape
 }

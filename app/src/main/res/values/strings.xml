@@ -37,4 +37,5 @@
   <string name="error_dummy_generate">Не удалось сгенерировать все dummy кадры</string>
   <string name="error_export_gif">Не удалось сгенерировать GIF. Возможно кадров слишком много</string>
   <string name="processed_progress">Сконвертировано: %1$s</string>
+    <string name="cubik">cubik</string>
 </resources>

@@ -86,6 +86,18 @@ fun InstrumentsPicker(
           tint = Color.White,
           contentDescription = stringResource(R.string.straight_line)
         )
+
+        ActionIcon(
+          modifier = Modifier
+            .size(32.dp),
+           // .rotate(-45f),
+          onClick = {
+            selectShape(Shape.Cubik)
+          },
+          icon = R.drawable.layers,
+          tint = Color.White,
+          contentDescription = stringResource(R.string.cubik)
+        )
       }
     }
   }
