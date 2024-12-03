@@ -210,6 +210,10 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.ChangeBrushSize(size))
   }
 
+  fun rotate3d(size: Float) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.Rotate3d(size))
+  }
+
   fun onCustomColorClick() {
     viewModel.actionConsumer.consumeAction(CanvasAction.CustomColorClick)
   }
@@ -218,8 +222,8 @@ fun CanvasScreen(
     viewModel.actionConsumer.consumeAction(CanvasAction.OpenShapes)
   }
 
-  fun selectShape(shape: Shape) {
-    viewModel.actionConsumer.consumeAction(CanvasAction.SelectShape(shape))
+  fun selectShape(shape: Shape, angle: Float) {
+    viewModel.actionConsumer.consumeAction(CanvasAction.SelectShape(shape, angle))
   }
 
   fun exportToGif() {
@@ -287,6 +291,7 @@ fun CanvasScreen(
     deleteAllFrames = remember { ::deleteAllFrames },
     onBrushSizeClick = remember { ::onBrushSizeClick },
     changeBrushSize = remember { ::changeBrushSize },
+    rotate3d = remember { ::rotate3d },
     onCustomColorClick = remember { ::onCustomColorClick },
     onShapeClick = remember { ::onShapeClick },
     selectShape = remember { ::selectShape },
@@ -352,9 +357,10 @@ private fun CanvasScreen(
   deleteAllFrames: () -> Unit = {},
   onBrushSizeClick: () -> Unit = {},
   changeBrushSize: (Float) -> Unit = {},
+  rotate3d: (Float) -> Unit = {},
   onCustomColorClick: () -> Unit = {},
   onShapeClick: () -> Unit = {},
-  selectShape: (Shape) -> Unit = {},
+  selectShape: (Shape, Float) -> Unit,
   exportToGif: () -> Unit = {},
   confirmGenerateDummyFrames: (Int) -> Unit = {},
   onTransformModeClick: () -> Unit = {},
@@ -404,7 +410,8 @@ private fun CanvasScreen(
         onColorChanged = onColorChanged,
         changeBrushSize = changeBrushSize,
         selectShape = selectShape,
-        closeExpandedColorPicker = closeExpandedColorPicker
+        closeExpandedColorPicker = closeExpandedColorPicker,
+        rotate3d = rotate3d
       )
 
       var generateDummyFramesDialogVisible by remember {
@@ -715,7 +722,8 @@ private fun BoxScope.Pickers(
   onFastColorClicked: (Color) -> Unit,
   onColorChanged: (Color) -> Unit,
   changeBrushSize: (Float) -> Unit,
-  selectShape: (Shape) -> Unit = {},
+  rotate3d: (Float) -> Unit,
+  selectShape: (Shape, Float) -> Unit,
   closeExpandedColorPicker: () -> Unit = {},
 ) {
   if (canvasState.editorConfiguration.colorPickerVisible) {
@@ -757,11 +765,12 @@ private fun BoxScope.Pickers(
         .align(Alignment.BottomCenter)
         .background(Color.Gray, RoundedCornerShape(4.dp))
         .padding(horizontal = 16.dp)
-        .height(60.dp)
+        .height(90.dp)
         .width(250.dp)
         .noIndicationClickable(),
       editorConfiguration = canvasState.editorConfiguration,
-      changeBrushSize = changeBrushSize
+      changeBrushSize = changeBrushSize,
+      rotate = rotate3d
     )
   }
 

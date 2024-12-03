@@ -46,7 +46,8 @@ class CanvasDrawUiState {
         editorConfiguration.color
       },
       eraseMode = editorConfiguration.currentMode == Erase,
-      brushSize = editorConfiguration.brushSizeByMode
+      brushSize = editorConfiguration.brushSizeByMode,
+      angle3d = editorConfiguration.rotateAngle
     )
 
     lastOffset = offset

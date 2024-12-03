@@ -34,9 +34,10 @@ sealed interface CanvasAction : MVIAction {
   data object ShowBrushSizePicker : CanvasAction
   data object HideBrushSizePicker : CanvasAction
   data class ChangeBrushSize(val size: Float) : CanvasAction
+  data class Rotate3d(val size: Float) : CanvasAction
   data object CustomColorClick : CanvasAction
   data object OpenShapes : CanvasAction
-  data class SelectShape(val shape: Shape) : CanvasAction
+  data class SelectShape(val shape: Shape, val angle: Float) : CanvasAction
   data object ExportToGif : CanvasAction
   data object FinishLoading : CanvasAction
   data class GenerateDummyFrames(val framesCount: Int) : CanvasAction

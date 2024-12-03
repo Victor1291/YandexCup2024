@@ -15,7 +15,7 @@ import ru.kartollika.yandexcup.components.Slider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrushSizePicker(
+fun Angle3dPicker(
   editorConfiguration: EditorConfiguration,
   modifier: Modifier = Modifier,
   changeBrushSize: (Float) -> Unit = {},

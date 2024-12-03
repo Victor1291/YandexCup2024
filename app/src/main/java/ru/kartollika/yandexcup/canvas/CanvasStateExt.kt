@@ -38,6 +38,7 @@ fun CanvasState.updateEditorConfig(
   currentMode: DrawMode = editorConfiguration.currentMode,
   animationDelay: Int = editorConfiguration.animationDelay,
   brushSize: Float = editorConfiguration.brushSize,
+  rotateAngle: Float = editorConfiguration.rotateAngle,
   eraserSize: Float = editorConfiguration.eraserSize,
   shapesPickerVisible: Boolean = editorConfiguration.shapesPickerVisible,
   dummyFramesCountInputVisible: Boolean = editorConfiguration.dummyFramesCountInputVisible,

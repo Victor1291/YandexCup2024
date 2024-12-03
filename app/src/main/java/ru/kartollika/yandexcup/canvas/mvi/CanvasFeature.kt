@@ -70,389 +70,426 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
-  private val gifExporter: GifExporter,
-  private val dummyPathsGenerator: DummyPathsGenerator2,
-  private val editorConfigurationParser: EditorConfigurationParser,
-  private val shapeDrawer: ShapeDrawer,
-  private val framesRepository: FramesRepository,
+    private val gifExporter: GifExporter,
+    private val dummyPathsGenerator: DummyPathsGenerator2,
+    private val editorConfigurationParser: EditorConfigurationParser,
+    private val shapeDrawer: ShapeDrawer,
+    private val framesRepository: FramesRepository,
 ) : MVIFeature<CanvasState, CanvasAction, CanvasEvent>() {
-  override fun initialState(): CanvasState = CanvasState(currentFrame = RealFrame())
+    override fun initialState(): CanvasState = CanvasState(currentFrame = RealFrame())
 
-  private val currentFrame: RealFrame
-    get() = state.value.currentFrame
+    private val currentFrame: RealFrame
+        get() = state.value.currentFrame
 
-  override suspend fun processAction(state: CanvasState, action: CanvasAction) {
-    when (action) {
-      is DrawStart -> Unit
-      is StartAnimation -> {
-        startFramesAnimation()
-      }
-
-      is DrawFinish -> {
-        val frame = currentFrame
-
-        val paths = frame.paths.toMutableList().apply {
-          action.pathWithProperties.let(this::add)
-        }.toImmutableList()
-
-        framesRepository.frames[state.currentFrameIndex] = frame.copy(
-          paths = paths,
-          undoPaths = null,
-        )
-      }
-
-      is EraseClick -> {
-        consumeAction(HideColorPicker)
-      }
-
-      is OnColorClick -> Unit
-      is PencilClick -> {
-        consumeAction(HideColorPicker)
-      }
-
-      is UndoChange -> {
-        val frame = currentFrame
-        val pathToUndo = frame.paths.last()
-
-        framesRepository.frames[state.currentFrameIndex] = frame.copy(
-          paths = frame.paths.subList(0, frame.paths.lastIndex),
-          undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
-        )
-      }
-
-      is RedoChange -> {
-        val frame = currentFrame
-
-        framesRepository.frames[state.currentFrameIndex] =
-          frame.copy(
-            paths = (frame.paths + frame.undoPaths!!.last()).toImmutableList(),
-            undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
-              .takeIf { it.isNotEmpty() }
-          )
-      }
-
-      is OnColorChanged -> Unit
-      is AddNewFrame -> {
-        framesRepository.frames.add(RealFrame())
-      }
-
-      is DeleteFrame -> {
-        val frames = framesRepository.frames
-
-        return if (frames.size == 1) {
-          consumeAction(DeleteAllFrames)
-        } else {
-          val indexToRemove = when (val frameIndex = action.frameIndex) {
-            is Current -> state.currentFrameIndex
-            is Index -> frameIndex.index
-          }
-
-          framesRepository.frames.removeAt(indexToRemove)
-          consumeAction(ChangeCurrentFrame(frames.lastIndex))
-        }
-      }
-
-      is StopAnimation -> Unit
-      is ChangeCurrentFrame -> Unit
-      is AnimationDelayChange -> Unit
-      CopyFrame -> {
-        framesRepository.frames.add(
-          currentFrame.copy()
-        )
-        consumeAction(ChangeCurrentFrame(state.currentFrameIndex + 1))
-      }
-
-      ShowFrames -> Unit
-      HideFrames -> Unit
-      is SelectFrame -> Unit
-      is DeleteAllFrames -> {
-        framesRepository.frames.clear()
-        framesRepository.frames.add(RealFrame())
-        consumeAction(ChangeCurrentFrame(0))
-      }
-
-      is HideColorPicker -> Unit
-      ShowBrushSizePicker -> Unit
-      is ChangeBrushSize -> {
-        if (state.editorConfiguration.currentMode != Transform) return
-
-        val paths = currentFrame.paths
-        val frame = currentFrame
-
-        framesRepository.frames[state.currentFrameIndex] = frame.copy(
-          paths = paths.replace(
-            replaceIndex = paths.lastIndex,
-            newItem = { path ->
-              path.copy(
-                properties = path.properties.copy(
-                  brushSize = state.editorConfiguration.brushSize
-                )
-              )
+    override suspend fun processAction(state: CanvasState, action: CanvasAction) {
+        when (action) {
+            is DrawStart -> Unit
+            is StartAnimation -> {
+                startFramesAnimation()
             }
-          ).toImmutableList()
-        )
-      }
 
-      HideBrushSizePicker -> Unit
-      CustomColorClick -> Unit
-      ShowColorPicker -> Unit
+            is DrawFinish -> {
+                val frame = currentFrame
 
-      is OnColorItemClicked -> {
-        consumeAction(HideColorPicker)
-      }
+                val paths = frame.paths.toMutableList().apply {
+                    action.pathWithProperties.let(this::add)
+                }.toImmutableList()
 
-      OpenShapes -> Unit
-      is SelectShape -> drawShape(action.shape)
-      is ExportToGif -> processExportToGif()
-      is GenerateDummyFrames -> {
-        generateDummyFrames(action.framesCount)
-      }
+                framesRepository.frames[state.currentFrameIndex] = frame.copy(
+                    paths = paths,
+                    undoPaths = null,
+                )
+            }
 
-      is AddFrames -> {
-        framesRepository.frames.addAll(action.frames)
-      }
+            is EraseClick -> {
+                consumeAction(HideColorPicker)
+            }
 
-      TransformModeClick -> Unit
-      is CanvasMeasured -> Unit
-      CloseExpandedColorPicker -> Unit
-      UpdateCurrentFrames -> Unit
-      FinishLoading -> Unit
-      is GifExportProgressUpdated -> Unit
+            is OnColorClick -> Unit
+            is PencilClick -> {
+                consumeAction(HideColorPicker)
+            }
+
+            is UndoChange -> {
+                val frame = currentFrame
+                val pathToUndo = frame.paths.last()
+
+                framesRepository.frames[state.currentFrameIndex] = frame.copy(
+                    paths = frame.paths.subList(0, frame.paths.lastIndex),
+                    undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
+                )
+            }
+
+            is RedoChange -> {
+                val frame = currentFrame
+
+                framesRepository.frames[state.currentFrameIndex] =
+                    frame.copy(
+                        paths = (frame.paths + frame.undoPaths!!.last()).toImmutableList(),
+                        undoPaths = frame.undoPaths.subList(0, frame.undoPaths.lastIndex)
+                            .takeIf { it.isNotEmpty() }
+                    )
+            }
+
+            is OnColorChanged -> Unit
+            is AddNewFrame -> {
+                framesRepository.frames.add(RealFrame())
+            }
+
+            is DeleteFrame -> {
+                val frames = framesRepository.frames
+
+                return if (frames.size == 1) {
+                    consumeAction(DeleteAllFrames)
+                } else {
+                    val indexToRemove = when (val frameIndex = action.frameIndex) {
+                        is Current -> state.currentFrameIndex
+                        is Index -> frameIndex.index
+                    }
+
+                    framesRepository.frames.removeAt(indexToRemove)
+                    consumeAction(ChangeCurrentFrame(frames.lastIndex))
+                }
+            }
+
+            is StopAnimation -> Unit
+            is ChangeCurrentFrame -> Unit
+            is AnimationDelayChange -> Unit
+            CopyFrame -> {
+                framesRepository.frames.add(
+                    currentFrame.copy()
+                )
+                consumeAction(ChangeCurrentFrame(state.currentFrameIndex + 1))
+            }
+
+            ShowFrames -> Unit
+            HideFrames -> Unit
+            is SelectFrame -> Unit
+            is DeleteAllFrames -> {
+                framesRepository.frames.clear()
+                framesRepository.frames.add(RealFrame())
+                consumeAction(ChangeCurrentFrame(0))
+            }
+
+            is HideColorPicker -> Unit
+            ShowBrushSizePicker -> Unit
+            is ChangeBrushSize -> {
+                if (state.editorConfiguration.currentMode != Transform) return
+
+                val paths = currentFrame.paths
+                val frame = currentFrame
+
+                framesRepository.frames[state.currentFrameIndex] = frame.copy(
+                    paths = paths.replace(
+                        replaceIndex = paths.lastIndex,
+                        newItem = { path ->
+                            path.copy(
+                                properties = path.properties.copy(
+                                    brushSize = state.editorConfiguration.brushSize
+                                )
+                            )
+                        }
+                    ).toImmutableList()
+                )
+            }
+//TODO поменял угол в свойстве path
+            is CanvasAction.Rotate3d -> {
+                if (state.editorConfiguration.currentMode != Transform) return
+
+                val paths = currentFrame.paths
+                val frame = currentFrame
+
+                val pathToUndo = frame.paths.last()
+
+                framesRepository.frames[state.currentFrameIndex] = frame.copy(
+                    paths = frame.paths.subList(0, frame.paths.lastIndex),
+                    undoPaths = (frame.getOrCreateUndoPaths().plus(pathToUndo)).toImmutableList()
+                )
+
+                drawShape(Shape.Cubik, action.size)
+
+                framesRepository.frames[state.currentFrameIndex] = frame.copy(
+                    paths = paths.replace(
+                        replaceIndex = paths.lastIndex,
+                        newItem = { path ->
+
+                            path.copy(
+                                properties = path.properties.copy(
+                                    angle3d = state.editorConfiguration.rotateAngle
+                                )
+                            )
+                        }
+                    ).toImmutableList()
+                )
+            }
+
+            HideBrushSizePicker -> Unit
+            CustomColorClick -> Unit
+            ShowColorPicker -> Unit
+
+            is OnColorItemClicked -> {
+                consumeAction(HideColorPicker)
+            }
+
+            OpenShapes -> Unit
+            is SelectShape -> drawShape(action.shape, action.angle)
+            is ExportToGif -> processExportToGif()
+            is GenerateDummyFrames -> {
+                generateDummyFrames(action.framesCount)
+            }
+
+            is AddFrames -> {
+                framesRepository.frames.addAll(action.frames)
+            }
+
+            TransformModeClick -> Unit
+            is CanvasMeasured -> Unit
+            CloseExpandedColorPicker -> Unit
+            UpdateCurrentFrames -> Unit
+            FinishLoading -> Unit
+            is GifExportProgressUpdated -> Unit
+        }
+
+        // Update state's currentFrame and previousFrame after each action
+        if (action !is UpdateCurrentFrames) {
+            updateCurrentFrame()
+        }
     }
 
-    // Update state's currentFrame and previousFrame after each action
-    if (action !is UpdateCurrentFrames) {
-      updateCurrentFrame()
+    private fun updateCurrentFrame() {
+        consumeAction(UpdateCurrentFrames)
     }
-  }
 
-  private fun updateCurrentFrame() {
-    consumeAction(UpdateCurrentFrames)
-  }
+    private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
+        launch(Dispatchers.Default) {
+            try {
+                (0 until framesCount)
+                    .asSequence()
+                    .chunked(500000)
+                    .map { it.size }
+                    .forEach { chunkSize ->
+                        val frames = dummyPathsGenerator.generateFrames(
+                            framesCount = chunkSize,
+                            editorConfiguration = state.value.editorConfiguration
+                        )
+                        consumeAction(AddFrames(frames))
+                    }
+            } catch (e: Exception) {
+                Log.e("CanvasFeature", "Error generating frames", e)
+                consumeEvent(ShowGenerateDummyFramesError)
+            } finally {
+                consumeAction(FinishLoading)
+            }
+        }
+    }
 
-  private suspend fun generateDummyFrames(framesCount: Int) = coroutineScope {
-    launch(Dispatchers.Default) {
-      try {
-        (0 until framesCount)
-          .asSequence()
-          .chunked(500000)
-          .map { it.size }
-          .forEach { chunkSize ->
-            val frames = dummyPathsGenerator.generateFrames(
-              framesCount = chunkSize,
-              editorConfiguration = state.value.editorConfiguration
+    private suspend fun processExportToGif() = coroutineScope {
+        launch(Dispatchers.Default) {
+            try {
+                val file = gifExporter.export(
+                    fileName = "animation.gif",
+                    frames = framesRepository.frames,
+                    canvasSize = state.value.editorConfiguration.canvasSize,
+                    delay = state.value.editorConfiguration.animationDelay,
+                    onProgress = {
+                        consumeAction(GifExportProgressUpdated(it))
+                    }
+                )
+                consumeEvent(ShareGif(file))
+            } catch (e: Exception) {
+                Log.e("CanvasFeature", "Error exporting to gif", e)
+                consumeEvent(ShowExportGifError)
+            } finally {
+                consumeAction(FinishLoading)
+            }
+        }
+    }
+
+    private fun drawShape(shape: Shape, angle: Float) {
+        val path = shapeDrawer.drawShape(shape, angle)
+
+        consumeAction(
+            DrawFinish(
+                PathWithProperties(
+                    path = path,
+                    properties = editorConfigurationParser.parseToProperties(state.value.editorConfiguration)
+                )
             )
-            consumeAction(AddFrames(frames))
-          }
-      } catch (e: Exception) {
-        Log.e("CanvasFeature", "Error generating frames", e)
-        consumeEvent(ShowGenerateDummyFramesError)
-      } finally {
-        consumeAction(FinishLoading)
-      }
-    }
-  }
-
-  private suspend fun processExportToGif() = coroutineScope {
-    launch(Dispatchers.Default) {
-      try {
-        val file = gifExporter.export(
-          fileName = "animation.gif",
-          frames = framesRepository.frames,
-          canvasSize = state.value.editorConfiguration.canvasSize,
-          delay = state.value.editorConfiguration.animationDelay,
-          onProgress = {
-            consumeAction(GifExportProgressUpdated(it))
-          }
         )
-        consumeEvent(ShareGif(file))
-      } catch (e: Exception) {
-        Log.e("CanvasFeature", "Error exporting to gif", e)
-        consumeEvent(ShowExportGifError)
-      } finally {
-        consumeAction(FinishLoading)
-      }
     }
-  }
 
-  private fun drawShape(shape: Shape) {
-    val path = shapeDrawer.drawShape(shape)
+    private suspend fun startFramesAnimation() = coroutineScope {
+        launch {
+            val maxIndex = framesRepository.frames.size
+            var frameIndex = 0
 
-    consumeAction(
-      DrawFinish(
-        PathWithProperties(
-          path = path,
-          properties = editorConfigurationParser.parseToProperties(state.value.editorConfiguration)
-        )
-      )
-    )
-  }
-
-  private suspend fun startFramesAnimation() = coroutineScope {
-    launch {
-      val maxIndex = framesRepository.frames.size
-      var frameIndex = 0
-
-      while (state.value.editorConfiguration.isPreviewAnimation) {
-        consumeAction(ChangeCurrentFrame(frameIndex))
-        delay(state.value.editorConfiguration.animationDelay.milliseconds)
-        frameIndex = (frameIndex + 1) % maxIndex
-      }
-    }
-  }
-
-  override fun reduce(state: CanvasState, action: CanvasAction): CanvasState {
-    return when (action) {
-      is DrawStart -> state.hidePickers()
-      is DrawFinish -> state
-
-      EraseClick -> state.updateEditorConfig(
-        currentMode = Erase
-      )
-
-      is OnColorClick -> if (state.editorConfiguration.colorPickerVisible) {
-        state.hidePickers()
-      } else {
-        state.openColorPicker()
-      }
-
-      PencilClick -> state.updateEditorConfig(
-        currentMode = Pencil
-      )
-
-      UndoChange -> state
-      RedoChange -> state
-
-      is OnColorChanged -> state.updateEditorConfig(
-        color = action.color,
-      )
-
-      AddNewFrame -> state.copy(
-        currentFrameIndex = framesRepository.frames.lastIndex + 1
-      )
-
-      is DeleteFrame -> state
-
-      StartAnimation -> {
-        state.updateEditorConfig(
-          isPreviewAnimation = true
-        ).hidePickers()
-      }
-
-      StopAnimation -> state.copy(
-        editorConfiguration = state.editorConfiguration.copy(
-          isPreviewAnimation = false,
-        ),
-        currentFrameIndex = framesRepository.frames.lastIndex
-      )
-
-      is ChangeCurrentFrame -> state.copy(
-        currentFrameIndex = action.frameIndex
-      )
-
-      is AnimationDelayChange -> state.updateEditorConfig(
-        animationDelay = action.animationDelay.roundToInt()
-      )
-
-      CopyFrame -> state
-
-      ShowFrames -> state.copy(
-        framesSheetVisible = true
-      )
-
-      HideFrames -> state.copy(
-        framesSheetVisible = false
-      )
-
-      is SelectFrame -> state.copy(
-        currentFrameIndex = action.frameIndex,
-        framesSheetVisible = false
-      )
-
-      DeleteAllFrames -> state.copy(
-        currentFrameIndex = 0,
-      )
-
-      is ShowColorPicker -> state.openColorPicker()
-      is ShowBrushSizePicker -> {
-        if (state.editorConfiguration.brushSizePickerVisible) {
-          state.hidePickers()
-        } else {
-          state.openBrushPicker()
+            while (state.value.editorConfiguration.isPreviewAnimation) {
+                consumeAction(ChangeCurrentFrame(frameIndex))
+                delay(state.value.editorConfiguration.animationDelay.milliseconds)
+                frameIndex = (frameIndex + 1) % maxIndex
+            }
         }
-      }
-
-      is OpenShapes -> {
-        if (state.editorConfiguration.shapesPickerVisible) {
-          state.hidePickers()
-        } else {
-          state.openShapesPicker()
-        }
-      }
-
-      is HideColorPicker -> state.hidePickers()
-      HideBrushSizePicker -> state.hidePickers()
-
-      is ChangeBrushSize -> if (state.editorConfiguration.currentMode == Erase) {
-        state.updateEditorConfig(
-          eraserSize = action.size,
-        )
-      } else {
-        state.updateEditorConfig(
-          brushSize = action.size,
-        )
-      }
-
-      CustomColorClick -> state.updateEditorConfig(
-        colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
-      )
-
-      is OnColorItemClicked -> state.updateEditorConfig(
-        color = action.color,
-        colorPickerExpanded = false
-      )
-
-      is SelectShape -> state.openBrushPicker().updateEditorConfig(
-        currentMode = Transform
-      )
-
-      ExportToGif -> state.updateEditorConfig(
-        isLoading = true
-      )
-
-      FinishLoading -> state.updateEditorConfig(
-        isLoading = false,
-      ).copy(
-        gifExportProcessed = null
-      )
-
-      is GenerateDummyFrames -> state.updateEditorConfig(
-        isLoading = true
-      )
-
-      is AddFrames -> state
-
-      TransformModeClick -> state.updateEditorConfig(
-        currentMode = Transform
-      )
-
-      is CanvasMeasured -> state.updateEditorConfig(
-        canvasSize = action.size
-      )
-
-      CloseExpandedColorPicker -> state.updateEditorConfig(
-        colorPickerExpanded = false
-      )
-
-      UpdateCurrentFrames -> state.copy(
-        currentFrame = framesRepository.frames[state.currentFrameIndex].materialize() as RealFrame,
-        previousFrame = framesRepository.frames.getOrNull(state.currentFrameIndex - 1)
-          ?.materialize() as? RealFrame,
-        maxFramesCount = framesRepository.frames.size,
-      )
-      is GifExportProgressUpdated -> state.copy(
-        gifExportProcessed = action.processed
-      )
     }
-  }
+
+    override fun reduce(state: CanvasState, action: CanvasAction): CanvasState {
+        return when (action) {
+            is DrawStart -> state.hidePickers()
+            is DrawFinish -> state
+
+            EraseClick -> state.updateEditorConfig(
+                currentMode = Erase
+            )
+
+            is OnColorClick -> if (state.editorConfiguration.colorPickerVisible) {
+                state.hidePickers()
+            } else {
+                state.openColorPicker()
+            }
+
+            PencilClick -> state.updateEditorConfig(
+                currentMode = Pencil
+            )
+
+            UndoChange -> state
+            RedoChange -> state
+
+            is OnColorChanged -> state.updateEditorConfig(
+                color = action.color,
+            )
+
+            AddNewFrame -> state.copy(
+                currentFrameIndex = framesRepository.frames.lastIndex + 1
+            )
+
+            is DeleteFrame -> state
+
+            StartAnimation -> {
+                state.updateEditorConfig(
+                    isPreviewAnimation = true
+                ).hidePickers()
+            }
+
+            StopAnimation -> state.copy(
+                editorConfiguration = state.editorConfiguration.copy(
+                    isPreviewAnimation = false,
+                ),
+                currentFrameIndex = framesRepository.frames.lastIndex
+            )
+
+            is ChangeCurrentFrame -> state.copy(
+                currentFrameIndex = action.frameIndex
+            )
+
+            is AnimationDelayChange -> state.updateEditorConfig(
+                animationDelay = action.animationDelay.roundToInt()
+            )
+
+            CopyFrame -> state
+
+            ShowFrames -> state.copy(
+                framesSheetVisible = true
+            )
+
+            HideFrames -> state.copy(
+                framesSheetVisible = false
+            )
+
+            is SelectFrame -> state.copy(
+                currentFrameIndex = action.frameIndex,
+                framesSheetVisible = false
+            )
+
+            DeleteAllFrames -> state.copy(
+                currentFrameIndex = 0,
+            )
+
+            is ShowColorPicker -> state.openColorPicker()
+            is ShowBrushSizePicker -> {
+                if (state.editorConfiguration.brushSizePickerVisible) {
+                    state.hidePickers()
+                } else {
+                    state.openBrushPicker()
+                }
+            }
+
+            is OpenShapes -> {
+                if (state.editorConfiguration.shapesPickerVisible) {
+                    state.hidePickers()
+                } else {
+                    state.openShapesPicker()
+                }
+            }
+
+            is HideColorPicker -> state.hidePickers()
+            HideBrushSizePicker -> state.hidePickers()
+
+            is ChangeBrushSize -> if (state.editorConfiguration.currentMode == Erase) {
+                state.updateEditorConfig(
+                    eraserSize = action.size,
+                )
+            } else {
+                state.updateEditorConfig(
+                    brushSize = action.size,
+                )
+            }
+
+            is CanvasAction.Rotate3d -> {
+                state.updateEditorConfig(
+                    rotateAngle = action.size,
+                )
+            }
+
+            CustomColorClick -> state.updateEditorConfig(
+                colorPickerExpanded = !state.editorConfiguration.colorPickerExpanded
+            )
+
+            is OnColorItemClicked -> state.updateEditorConfig(
+                color = action.color,
+                colorPickerExpanded = false
+            )
+
+            is SelectShape -> state.openBrushPicker().updateEditorConfig(
+                currentMode = Transform
+            )
+
+            ExportToGif -> state.updateEditorConfig(
+                isLoading = true
+            )
+
+            FinishLoading -> state.updateEditorConfig(
+                isLoading = false,
+            ).copy(
+                gifExportProcessed = null
+            )
+
+            is GenerateDummyFrames -> state.updateEditorConfig(
+                isLoading = true
+            )
+
+            is AddFrames -> state
+
+            TransformModeClick -> state.updateEditorConfig(
+                currentMode = Transform
+            )
+
+            is CanvasMeasured -> state.updateEditorConfig(
+                canvasSize = action.size
+            )
+
+            CloseExpandedColorPicker -> state.updateEditorConfig(
+                colorPickerExpanded = false
+            )
+
+            UpdateCurrentFrames -> state.copy(
+                currentFrame = framesRepository.frames[state.currentFrameIndex].materialize() as RealFrame,
+                previousFrame = framesRepository.frames.getOrNull(state.currentFrameIndex - 1)
+                    ?.materialize() as? RealFrame,
+                maxFramesCount = framesRepository.frames.size,
+            )
+
+            is GifExportProgressUpdated -> state.copy(
+                gifExportProcessed = action.processed
+            )
+        }
+    }
 }

@@ -22,7 +22,7 @@ import ru.kartollika.yandexcup.canvas.compose.ActionIcon
 @Composable
 fun InstrumentsPicker(
   modifier: Modifier = Modifier,
-  selectShape: (Shape) -> Unit = {},
+  selectShape: (Shape, Float) -> Unit,
 ) {
   Picker(
     modifier = modifier,
@@ -35,7 +35,7 @@ fun InstrumentsPicker(
           modifier = Modifier
             .size(32.dp),
           onClick = {
-            selectShape(Square)
+            selectShape(Square, 40f)
           },
           icon = R.drawable.square,
           tint = Color.White,
@@ -46,7 +46,7 @@ fun InstrumentsPicker(
           modifier = Modifier
             .size(32.dp),
           onClick = {
-            selectShape(Circle)
+            selectShape(Circle, 40f)
           },
           icon = R.drawable.circle,
           tint = Color.White,
@@ -57,7 +57,7 @@ fun InstrumentsPicker(
           modifier = Modifier
             .size(32.dp),
           onClick = {
-            selectShape(Triangle)
+            selectShape(Triangle,40f)
           },
           icon = R.drawable.triangle,
           tint = Color.White,
@@ -68,7 +68,7 @@ fun InstrumentsPicker(
           modifier = Modifier
             .size(32.dp),
           onClick = {
-            selectShape(Arrow)
+            selectShape(Arrow, 40f)
           },
           icon = R.drawable.arrow_up,
           tint = Color.White,
@@ -80,7 +80,7 @@ fun InstrumentsPicker(
             .size(32.dp)
             .rotate(-45f),
           onClick = {
-            selectShape(Straight)
+            selectShape(Straight, 40f)
           },
           icon = R.drawable.straight,
           tint = Color.White,
@@ -90,9 +90,8 @@ fun InstrumentsPicker(
         ActionIcon(
           modifier = Modifier
             .size(32.dp),
-           // .rotate(-45f),
           onClick = {
-            selectShape(Shape.Cubik)
+            selectShape(Shape.Cubik, 20f)
           },
           icon = R.drawable.layers,
           tint = Color.White,

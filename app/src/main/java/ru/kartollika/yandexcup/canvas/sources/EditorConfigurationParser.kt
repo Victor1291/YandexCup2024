@@ -12,7 +12,8 @@ class EditorConfigurationParser @Inject constructor() {
     val properties = PathProperties(
       color = editorConfiguration.color,
       eraseMode = editorConfiguration.currentMode == Erase,
-      brushSize = editorConfiguration.brushSize
+      brushSize = editorConfiguration.brushSize,
+      angle3d = editorConfiguration.rotateAngle
     )
     return properties
   }

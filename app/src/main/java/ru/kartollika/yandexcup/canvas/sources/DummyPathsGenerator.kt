@@ -65,7 +65,7 @@ class DummyPathsGenerator @Inject constructor(
   ) {
     if (Random.nextBoolean()) {
       path.addPath(
-        shapeDrawer.drawShape(randomShape()).apply {
+        shapeDrawer.drawShape(randomShape(), 40f).apply {
           translate(
             Offset(
               Random.nextDouble(0.0, canvasWidth).toFloat(),

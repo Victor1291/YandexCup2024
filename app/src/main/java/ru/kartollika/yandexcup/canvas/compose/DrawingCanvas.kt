@@ -55,6 +55,7 @@ fun DrawingCanvas(
     }
     .pointerInput(canvasDrawUiState.mode) {
       if (canvasDrawUiState.mode == Transform) return@pointerInput
+      //TODO change on version 2
       detectDragOrTransformGestures(
         onDragStart = {
           onDragStart(it)
