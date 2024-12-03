@@ -104,11 +104,13 @@ class Cube(val center: Point3D, val edgeLength: Float) {
         for (i in 1..3) {
             path.lineTo(vertices[i].x, vertices[i].y)
         }
+        path.lineTo(vertices[0].x, vertices[0].y)
 
         path.moveTo(vertices[4].x, vertices[4].y)
         for (i in 5..7) {
             path.lineTo(vertices[i].x, vertices[i].y)
         }
+        path.lineTo(vertices[4].x, vertices[4].y)
 
         for (i in 0..3) {
             path.moveTo(vertices[i].x, vertices[i].y)
