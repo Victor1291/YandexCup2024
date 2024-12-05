@@ -16,7 +16,7 @@ class DummyPathsGenerator3 @Inject constructor(
     private val shapeDrawer: ShapeDrawer,
 ) {
 
-    // private val cube = Cube(Point3D(500f, 500f, 500f), 500f)
+    private val cube2 = Cube(Point3D(500f, 1200f, 500f), 500f)
     private val cube = CubeRubik(Point3D(500f, 500f, 500f), CUBE2_SIZE, CUBE2_SIZE, CUBE2_SIZE)
     private var dx = 5f // Шаг поворота , на какой угол
     private var dy = 5f
@@ -57,10 +57,12 @@ class DummyPathsGenerator3 @Inject constructor(
         val path = Path()
         // drawRandomInPath(path, canvasWidth, canvasHeight)
         cube.drawPath(path)
+        cube2.drawPath(path)
         //по оси Z
-        //cube.rotate(dy / 100, Point3D(0f, 0f, 1f))
+        cube2.rotate(dy / 100, Point3D(0f, 0f, 1f))
         // по оси Х
         cube.rotate(dy / 100, Point3D(1f, 0f, 0f))
+        cube2.rotate(dy / 100, Point3D(1f, 0f, 0f))
         // по оси Y
         cube.rotate(-dx / 100, Point3D(0f, 1f, 0f))
         paths.add(PathWithProperties(path, pathProperties))
