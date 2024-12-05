@@ -55,7 +55,7 @@ class ShapeDrawer @Inject constructor() {
   }
 
   private fun drawCubik(path: Path, angle: Float) {
-    val cube = Cube(Point3D(200f, 200f, 200f), 200f)
+    val cube = Cube(Point3D(100f, 100f, 100f), 100f)
     cube.rotate(angle / 100, Point3D(1f, 0f, 0f))
     cube.rotate(-angle / 100, Point3D(0f, 1f, 0f))
     cube.drawPath(path)

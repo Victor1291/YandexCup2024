@@ -1,12 +1,13 @@
 package ru.kartollika.yandexcup.canvas.sources
 
 import android.graphics.Color
+import android.util.Log
 import androidx.compose.ui.graphics.Path
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-class Cube(val center: Point3D, val edgeLength: Float) {
+class CubePaint(val center: Point3D, val edgeLength: Float) {
 
     // вершины куба
     private val vertices = mutableListOf(
@@ -95,7 +96,9 @@ class Cube(val center: Point3D, val edgeLength: Float) {
     private fun randomColorGradient(): Int {
         return Color.HSVToColor(floatArrayOf(Random.nextInt(361).toFloat(), 1f, 1f))
     }
-
+/*
+TODO сделать разбивку по кадрам вращая куб
+ */
 
     fun drawPath(path: Path) {
 

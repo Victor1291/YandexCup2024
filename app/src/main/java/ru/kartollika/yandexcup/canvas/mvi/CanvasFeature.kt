@@ -56,8 +56,7 @@ import ru.kartollika.yandexcup.canvas.mvi.DrawMode.Transform
 import ru.kartollika.yandexcup.canvas.openBrushPicker
 import ru.kartollika.yandexcup.canvas.openColorPicker
 import ru.kartollika.yandexcup.canvas.openShapesPicker
-//import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator
-import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator2
+import ru.kartollika.yandexcup.canvas.sources.DummyPathsGenerator3
 import ru.kartollika.yandexcup.canvas.sources.EditorConfigurationParser
 import ru.kartollika.yandexcup.canvas.sources.FramesRepository
 import ru.kartollika.yandexcup.canvas.sources.GifExporter
@@ -71,7 +70,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class CanvasFeature @Inject constructor(
     private val gifExporter: GifExporter,
-    private val dummyPathsGenerator: DummyPathsGenerator2,
+    private val dummyPathsGenerator: DummyPathsGenerator3,
     private val editorConfigurationParser: EditorConfigurationParser,
     private val shapeDrawer: ShapeDrawer,
     private val framesRepository: FramesRepository,
