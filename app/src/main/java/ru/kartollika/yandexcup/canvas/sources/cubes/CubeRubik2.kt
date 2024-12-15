@@ -4,7 +4,7 @@ import ru.kartollika.yandexcup.canvas.sources.Point3D
 import kotlin.math.cos
 import kotlin.math.sin
 
-class CubeRubik(center: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) :
+class CubeRubik2(center: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) :
     CubeOpen(center, edgeX, edgeY, edgeZ) {
 
     //массив вершин
@@ -16,66 +16,66 @@ class CubeRubik(center: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) :
         initVertices(edgeX, edgeY, edgeZ)
     }
 
-    private fun initVertices(edjX: Float, edjY: Float, edjZ: Float) {
-        val edgeY = edjY
-        val edgeZ = edjZ
-        val edgeX = edjX
-        val eX = edgeX.toInt()
-        val stepX = (eX / 3) * 2
+    fun getSize(): Int {
+        return verticesList.size
+    }
 
-        for (edX in eX downTo 0 step stepX) {
-            modelVertices(edX.toFloat(), edgeY, edgeZ)
-        }
-        for (edX in eX downTo 0 step stepX) {
-            modelVertices(edgeX, edX.toFloat(), edgeZ)
-        }
-        for (edX in eX downTo 0 step stepX) {
-            modelVertices(edgeX, edgeY, edX.toFloat())
-        }
+    private fun initVertices(edgeX: Float, edgeY: Float, edgeZ: Float) {
+        val eX = edgeX.toInt()
+        val stepX = (edgeX / 3)
+        val centerMinus = center.copy(x = center.x - stepX - 50f)
+        val centerPlus = center.copy(x = center.x + stepX + 50f)
+
+        modelVertices(center,  stepX, edgeY, edgeZ)
+        modelVertices(centerPlus,stepX, edgeY , edgeZ)
+        modelVertices(centerMinus,stepX, edgeY , edgeZ)
+       // modelVertices(edgeX, stepX, edgeZ)
+//modelVertices(edgeX, edgeY, stepX)
+
     }
 
 
-    private fun modelVertices(edgeX: Float, edgeY: Float, edgeZ: Float) {
+    private fun modelVertices(centerNew: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) {
         vertices2 = mutableListOf(
             Point3D(
-                center.x - edgeX / 2,
-                center.y - edgeY / 2,
-                center.z - edgeZ / 2
+                centerNew.x - edgeX / 2,
+                centerNew.y - edgeY / 2,
+                centerNew.z - edgeZ / 2
             ), //1  - - -
             Point3D(
-                center.x + edgeX / 2,
-                center.y - edgeY / 2,
-                center.z - edgeZ / 2
+                centerNew.x + edgeX / 2,
+                centerNew.y - edgeY / 2,
+                centerNew.z - edgeZ / 2
             ), //2. + - -
             Point3D(
-                center.x + edgeX / 2,
-                center.y + edgeY / 2,
-                center.z - edgeZ / 2
+                centerNew.x + edgeX / 2,
+                centerNew.y + edgeY / 2,
+                centerNew.z - edgeZ / 2
             ), //3. + + -
             Point3D(
-                center.x - edgeX / 2,
-                center.y + edgeY / 2,
-                center.z - edgeZ / 2
+                centerNew.x - edgeX / 2,
+                centerNew.y + edgeY / 2,
+                centerNew.z - edgeZ / 2
             ), //4. - + -
             Point3D(
-                center.x - edgeX / 2,
-                center.y - edgeY / 2,
-                center.z + edgeZ / 2
+                centerNew.x - edgeX / 2,
+                centerNew.y - edgeY / 2,
+                centerNew.z + edgeZ / 2
             ), //5. - - +
             Point3D(
-                center.x + edgeX / 2,
-                center.y - edgeY / 2,
-                center.z + edgeZ / 2
+                centerNew.x + edgeX / 2,
+                centerNew.y - edgeY / 2,
+                centerNew.z + edgeZ / 2
             ), //6. + - +
             Point3D(
-                center.x + edgeX / 2,
-                center.y + edgeY / 2,
-                center.z + edgeZ / 2
+                centerNew.x + edgeX / 2,
+                centerNew.y + edgeY / 2,
+                centerNew.z + edgeZ / 2
             ), //7. + + +
             Point3D(
-                center.x - edgeX / 2,
-                center.y + edgeY / 2,
-                center.z + edgeZ / 2
+                centerNew.x - edgeX / 2,
+                centerNew.y + edgeY / 2,
+                centerNew.z + edgeZ / 2
             ), //8. - + +
         )
         verticesList.add(vertices2)
@@ -83,13 +83,13 @@ class CubeRubik(center: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) :
     }
 
 
-    override fun rotate(angle: Float, axis: Point3D) {
-        super.rotate(angle, axis)
-        verticesList.forEach { vertices ->
+    fun rotate(angle: Float, axis: Point3D, vertexNumber: Int) {
+        // super.rotate(angle, axis)
+        verticesList[vertexNumber].also { vertex ->
 
             val sin = sin(angle)
             val cos = cos(angle)
-            vertices.forEach {
+            vertex.forEach {
                 val x = it.x - center.x
                 val y = it.y - center.y
                 val z = it.z - center.z
@@ -120,9 +120,9 @@ class CubeRubik(center: Point3D, edgeX: Float, edgeY: Float, edgeZ: Float) :
         }
     }
 
-    override fun drawPath(path: androidx.compose.ui.graphics.Path) {
-        super.drawPath(path)
-        verticesList.forEach { vertex ->
+    fun drawPath(path: androidx.compose.ui.graphics.Path, vert: Int) {
+        // super.drawPath(path)
+        verticesList[vert].also { vertex ->
 
             path.moveTo(vertex[0].x, vertex[0].y)
             for (i in 1..3) {
